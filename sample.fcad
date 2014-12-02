@@ -1,0 +1,7 @@
+union(){
+
+	rectangle([1, 1]);
+
+	translate([1, 0])
+	circle(r=1);
+}
