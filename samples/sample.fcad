@@ -1,5 +1,4 @@
 union(){
-
 	rectangle([1, 1]);
 
 	translate([1, 0])
