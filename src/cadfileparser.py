@@ -111,7 +111,7 @@ class FcadParser:
             '!' + expression | \
             LPAR + expression + RPAR | \
             expression + '?' + expression + ':' + expression | \
-            expression + '[' + expression + RBRACK | \
+            expression + LBRACK + expression + RBRACK | \
             identifier + LPAR + arguments + RPAR
         
         optional_commas << \
@@ -140,10 +140,10 @@ class FcadParser:
             argument | \
             arguments + ',' + optional_commas + argument
 
-        self.program = input + body
+        self.program = Optional(input) + body
 
     # noinspection PyPep8Naming,PyUnusedLocal
-    def init_program(self):
+    def xxinit_program(self):
         LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA = map(Suppress, "()[]{};,")
         WHILE = Keyword("while")
         DO = Keyword("do")
@@ -223,6 +223,7 @@ class FcadParser:
         self.program = program
 
     def parse(self):
+        result, error = None, None
         f = open(self.filename, 'r')
         text = f.read()
         f.close()
@@ -230,7 +231,9 @@ class FcadParser:
         print text
 
         try:
-            ast = self.program.parseString(text, parseAll=True)
-            pprint.pprint(ast.asList())
+            result = self.program.parseString(text, parseAll=True)
+            pprint.pprint(result.asList())
         except ParseException as ex:
-            print "failed to parse input.", ex
+            error = "failed to parse input. " + str(ex)
+
+        return result, error

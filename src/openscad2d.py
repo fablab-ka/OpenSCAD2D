@@ -3,15 +3,17 @@ import sys
 from documentwatcher import DocumentWatcher
 from geometrywidget import GeometryWidget
 from svggenerator import SvgGenerator
-from cairogenerator import CairoGenerator
+from geometrygenerator import GeometryGenerator
 from PyQt4 import QtCore, QtGui
 
 
 class OpenSCAD2D:
     def __init__(self, filename):
+        self.filename = filename
+
         self.parser = FcadParser(filename)
         self.file_generator = SvgGenerator()
-        self.ui_generator = CairoGenerator()
+        self.geometry_generator = GeometryGenerator()
 
         self.watcher = DocumentWatcher(filename, self.on_file_change)
         self.watcher.monitor()
@@ -19,21 +21,21 @@ class OpenSCAD2D:
         self.widget = None
 
     def update(self):
-        ast = self.parser.parse()
-        data = self.ui_generator.generate(ast)
-        self.widget.setData(data)
+        ast, error = self.parser.parse()
+        print ast, error
+        data = self.geometry_generator.generate(ast)
+        if self.widget:
+            self.widget.setData(data, error)
+        return data, error
 
     def run(self):
-        self.show_ui()
-        self.update()
+        app = QtGui.QApplication(sys.argv)
+        data, error = self.update()
+        self.widget = GeometryWidget(self.filename, data, error)
+        sys.exit(app.exec_())
 
     def on_file_change(self):
         self.update()
-
-    def show_ui(self):
-        app = QtGui.QApplication(sys.argv)
-        self.widget = GeometryWidget()
-        sys.exit(app.exec_())
 
 if __name__ == "__main__":
     if len(sys.argv) <= 1:

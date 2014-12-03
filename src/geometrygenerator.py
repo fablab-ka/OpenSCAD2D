@@ -1,7 +1,7 @@
-#from shapely.geometry import box
+import shapely
 
 
-class CairoGenerator:
+class GeometryGenerator:
     def __init__(self):
         pass
 

@@ -1,0 +1,126 @@
+"Name"     = 'Enter the name of the grammar'
+"Author"   = 'Enter your name'
+"Version"  = 'The version of the grammar and/or language'
+"About"    = 'A short description of the grammar'
+
+"Start Symbol" = <Program>
+
+! -------------------------------------------------
+! Character Sets
+! -------------------------------------------------
+
+{ID Head}      = {Letter} + [_]
+{ID Tail}      = {Alphanumeric} + [_]
+{String Chars} = {Printable} + {HT} - ["\]
+
+! -------------------------------------------------
+! Terminals
+! -------------------------------------------------
+
+Empty         = ''
+Identifier    = {ID Head}{ID Tail}*
+StringLiteral = '"' ( {String Chars} | '\' {Printable} )* '"'
+
+! -------------------------------------------------
+! Rules
+! -------------------------------------------------
+
+<Program> ::= <input> <body>
+
+<Expression>  ::= <Expression> '>'  <Add Exp> 
+               |  <Expression> '<'  <Add Exp> 
+               |  <Expression> '<=' <Add Exp> 
+               |  <Expression> '>=' <Add Exp>
+               |  <Expression> '==' <Add Exp>    !Equal
+               |  <Expression> '!=' <Add Exp>    !Not equal
+               |  <Add Exp> 
+
+<Add Exp>     ::= <Add Exp> '+' <Mult Exp>
+               |  <Add Exp> '-' <Mult Exp>
+               |  <Mult Exp> 
+
+<Mult Exp>    ::= <Mult Exp> '*' <Negate Exp> 
+               |  <Mult Exp> '/' <Negate Exp> 
+               |  <Negate Exp> 
+
+<Negate Exp>  ::= '-' <Value> 
+               |  <Value>
+
+<Value>       ::= Identifier
+               |  '(' <Expression> ')'
+               
+<input> ::= Empty | 'use' <input> | <statement> <input>
+
+<body>  ::= Empty | <statement> <body>
+               
+<statement> ::= ';' | '{' <body> '}' | <module_instantiation> | Identifier '=' <expression> ';' |
+    'module' Identifier '(' <parameters> <optional_commas> ')' <statement> |
+    'function' Identifier '(' <parameters> <optional_commas> ')' '=' <expression> ';'
+
+<module_instantiation> ::= <single_module_instantiation> ';' |
+    <single_module_instantiation> <children_instantiation> |
+    <ifelse_statement>
+
+<children_instantiation> ::= <module_instantiation> | '{' <module_instantiation_list> '}'
+
+<if_statement> ::= 'if' '(' <expression> ')' <children_instantiation>
+
+<ifelse_statement> ::=  <if_statement> |
+    <if_statement> 'else' <children_instantiation>
+
+<module_instantiation_list> ::= <empty> |
+    <module_instantiation_list> <module_instantiation>
+
+<single_module_instantiation> ::= Identifier '(' <arguments> ')' |
+    Identifier ':' <single_module_instantiation> |
+    '!' <single_module_instantiation> |
+    '#' <single_module_instantiation> |
+    '%' <single_module_instantiation> |
+    '*' <single_module_instantiation>
+
+<expression> ::= 'true' |
+    'false' |
+    'undef' |
+    Identifier |
+    <expression> '.' Identifier |
+    <string> |
+    <number> |
+    '[' <expression> ':' <expression> ']' |
+    '[' <expression> ':' <expression> ':' <expression> ']' |
+    '[' <optional_commas> ']' |
+    '[' <vector_expression> <optional_commas> ']' |
+    <expression> '*' <expression> |
+    <expression> '/' <expression> |
+    <expression> '%' <expression> |
+    <expression> '+' <expression> |
+    <expression> '-' <expression> |
+    <expression> '<' <expression> |
+    <expression> '<=' <expression> |
+    <expression> '==' <expression> |
+    <expression> '!=' <expression> |
+    <expression> '>=' <expression> |
+    <expression> '>' <expression> |
+    <expression> '&&' <expression> |
+    <expression> '||' <expression> |
+    '+' <expression> |
+    '-' <expression> |
+    '!' <expression> |
+    '(' <expression> ')' |
+    <expression> '?' <expression> ':' <expression> |
+    <expression> '[' <expression> ']' |
+    Identifier '(' <arguments> ')'
+
+<optional_commas> ::= <empty> | ',' <optional_commas>
+
+<vector_expr> ::= <expression> | <vector_expr> ',' <optional_commas> <expression>
+
+<parameters> ::= <empty> | <parameter> | <parameters> ',' <optional_commas> <parameter>
+
+<parameter> ::= Identifier | Identifier '=' <expression>
+
+<arguments> ::= <empty> | <argument> | <arguments> ',' <optional_commas> <argument>
+
+<argument> ::= <expression> | Identifier '=' <expression>
+
+
+
