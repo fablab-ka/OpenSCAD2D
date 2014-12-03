@@ -1,9 +1,10 @@
 from cadfileparser import *
 import sys
 from documentwatcher import DocumentWatcher
+from geometrywidget import GeometryWidget
 from svggenerator import SvgGenerator
 from cairogenerator import CairoGenerator
-#import gtk
+from PyQt4 import QtCore, QtGui
 
 
 class OpenSCAD2D:
@@ -15,11 +16,12 @@ class OpenSCAD2D:
         self.watcher = DocumentWatcher(filename, self.on_file_change)
         self.watcher.monitor()
 
-        #self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.widget = None
 
     def update(self):
         ast = self.parser.parse()
-        self.ui_generator.generate(ast)
+        data = self.ui_generator.generate(ast)
+        self.widget.setData(data)
 
     def run(self):
         self.show_ui()
@@ -29,8 +31,9 @@ class OpenSCAD2D:
         self.update()
 
     def show_ui(self):
-        #self.window.show()
-        pass
+        app = QtGui.QApplication(sys.argv)
+        self.widget = GeometryWidget()
+        sys.exit(app.exec_())
 
 if __name__ == "__main__":
     if len(sys.argv) <= 1:
