@@ -22,7 +22,7 @@ class OpenSCAD2D:
 
     def update(self):
         ast, error = self.parser.parse()
-        print ast, error
+        print "AST:", ast, ", Error:", error
         data = self.geometry_generator.generate(ast)
         if self.widget:
             self.widget.setData(data, error)

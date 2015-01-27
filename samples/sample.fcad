@@ -1,1 +1,4 @@
-circle(r=1);
+use test;
+use test2;
+
+var1 = 5;
