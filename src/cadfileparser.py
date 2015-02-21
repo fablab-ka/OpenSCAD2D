@@ -1,12 +1,12 @@
 import pprint
 from pyparsing import *
 
-#defines debug level
+# defines debug level
 # 0 - no debug
 # 1 - print parsing results
 # 2 - print parsing results and symbol table
 # 3 - print parsing results only, without executing parse actions (grammar-only testing)
-DEBUG = 0
+DEBUG = 2
 
 ##########################################################################################
 ##########################################################################################
@@ -20,9 +20,7 @@ class KINDS:
 
 
 class SharedData(object):
-
     def __init__(self):
-
         # index of the currently parsed function
         self.function_index = 0
         # name of the currently parsed function
@@ -31,6 +29,7 @@ class SharedData(object):
         self.function_params = 0
         # number of local variables of the currently parsed function
         self.function_vars = 0
+
 
 ##########################################################################################
 ##########################################################################################
@@ -49,6 +48,7 @@ class ExceptionSharedData(object):
         """Helper function for setting currently parsed text and position"""
         self.location = location
         self.text = text
+
 
 exshared = ExceptionSharedData()
 
@@ -73,8 +73,10 @@ class SemanticException(Exception):
 
     def _get_message(self):
         return self._message
+
     def _set_message(self, message):
         self._message = message
+
     message = property(_get_message, _set_message)
 
     def __str__(self):
@@ -86,6 +88,7 @@ class SemanticException(Exception):
         if self.print_location and (self.line != None):
             msg += "\n%s" % self.text
         return msg
+
 
 ##########################################################################################
 ##########################################################################################
@@ -127,7 +130,8 @@ class SymbolTable:
         kind_name = "Kind"
         kind_len = max(max(len(i.kind) for i in self.table), len(kind_name))
         # print table header
-        print "{0:3s} | {1:^{2}s} | {3:^{4}s} | {4:s}".format(" No", sym_name, sym_len, kind_name, kind_len, "Parameters")
+        print "{0:3s} | {1:^{2}s} | {3:^{4}s} | {4:s}".format(" No", sym_name, sym_len, kind_name, kind_len,
+                                                              "Parameters")
         print "-----------------------------" + "-" * (sym_len + kind_len)
         # print symbol table
         for i, sym in enumerate(self.table):
@@ -206,15 +210,34 @@ class FcadParser:
         TRUE = Keyword("true")
         FALSE = Keyword("false")
         UNDEF = Keyword("undef")
+        mul_operator = oneOf("* /")
+        add_operator = oneOf("+ -")
 
         identifier = Word(alphas + "_", alphanums + "_")
         integer = Word(nums).setParseAction(lambda x: [x[0], "INT"])
         floatnumber = Regex(r"[-+]?[0-9]*\.?[0-9]+")
         number = integer | floatnumber
+        constant = number.setParseAction(self.constant_action)
 
         use = (USE + identifier("name") + SEMI).setParseAction(self.use_action)
 
-        expression = number
+        expression = Forward()
+        mul_expression = Forward()
+        num_expression = Forward()
+
+        arguments = delimitedList(expression("exp").setParseAction(self.argument_action))
+        module_call = ((identifier("name") + FollowedBy("(")).setParseAction(self.module_call_prepare_action) +
+                       LPAR + Optional(arguments)("args") + RPAR).setParseAction(self.module_call_action)
+        module_call_statement = module_call + SEMI
+
+        expression << (module_call |
+                       constant |
+                       identifier("name").setParseAction(self.lookup_id_action) |
+                       Group(Suppress("(") + num_expression + Suppress(")")) |
+                       Group("+" + expression) |
+                       Group("-" + expression)).setParseAction(lambda x: x[0])
+        mul_expression << (expression + ZeroOrMore(mul_operator + expression))
+        num_expression << (mul_expression + ZeroOrMore(add_operator + mul_expression))
 
         statement = Forward()
 
@@ -228,11 +251,29 @@ class FcadParser:
 
         statement << module_call_statement | assign_statement
 
-
-        #body = Forward()
         body = OneOrMore(statement)
 
         self.program = (ZeroOrMore(use) + body).setParseAction(self.program_end_action)
+
+    def lookup_id_action(self, text, loc, var):
+        """Code executed after recognising an identificator in expression"""
+        exshared.setpos(loc, text)
+        if DEBUG > 0:
+            print "EXP_VAR:", var
+            if DEBUG == 2: self.symtab.display()
+            if DEBUG > 2: return
+        if not self.symtab.contains(var.name, KINDS.GLOBAL_VAR):
+            raise SemanticException("'%s' undefined" % var.name)
+        return var.name
+
+    def constant_action(self, text, loc, const):
+        """Code executed after recognising a constant"""
+        exshared.setpos(loc, text)
+        if DEBUG > 0:
+            print "CONST:", const
+            if DEBUG == 2: self.symtab.display()
+            if DEBUG > 2: return
+        return const
 
     def assign_action(self, text, loc, assign):
         if DEBUG > 0:
@@ -244,6 +285,7 @@ class FcadParser:
 
     def use_action(self, text, loc, use):
         print "use_action"
+        return "use_token"
 
     def argument_action(self, text, loc, argument):
         print "argument_action"
@@ -294,100 +336,100 @@ class FcadParser:
 
         #Null operation statement is superfluous
         statement << SEMI | \
-            LBRACE + body + RBRACE | \
-            module_instantiation | \
-            identifier + EQUAL + expression + SEMI | \
-            MODULE + identifier + LPAR + parameters + optional_commas + RPAR + statement | \
-            FUNCTION + identifier + LPAR + parameters + optional_commas + RPAR + EQUAL + expression + SEMI
+        LBRACE + body + RBRACE | \
+        module_instantiation | \
+        identifier + EQUAL + expression + SEMI | \
+        MODULE + identifier + LPAR + parameters + optional_commas + RPAR + statement | \
+        FUNCTION + identifier + LPAR + parameters + optional_commas + RPAR + EQUAL + expression + SEMI
         #Optional commas in the above two seem strange to me. We can have for e.g. module foo(a,,,,,,b){} how on earth can this be useful?
         #I agree that is makes sence for a module instantiation because we might want to pass undef, but for declarations its just a way
         #of ensuring we don't have access to unnamed module parameters, so why have them at all?
-        
+
         children_instantiation = \
             module_instantiation | \
             LBRACE + module_instantiation_list + RBRACE
-        
+
         if_statement = IF + LPAR + expression + RPAR + children_instantiation
         # why can't we just have statements in our if  why is the following invalid!? if(true) { a=1; cube([10,a,10]); }
-        
+
         ifelse_statement = \
             if_statement | \
             if_statement + ELSE + children_instantiation
 
         module_instantiation << \
-            single_module_instantiation + SEMI | \
-            single_module_instantiation + children_instantiation | \
-            ifelse_statement
+        single_module_instantiation + SEMI | \
+        single_module_instantiation + children_instantiation | \
+        ifelse_statement
 
-        module_instantiation_list <<  empty | module_instantiation_list + module_instantiation
+        module_instantiation_list << empty | module_instantiation_list + module_instantiation
 
         # this is interesting, you can have a label before a module instantiation e.g. foo: cube([10,10,10]); although what this is for I have no idea.
         single_module_instantiation << \
-            identifier + LPAR + arguments + RPAR | \
-            identifier + ':' + single_module_instantiation | \
-            '!' + single_module_instantiation | \
-            '#' + single_module_instantiation | \
-            '%' + single_module_instantiation | \
-            '*' + single_module_instantiation
-        
+        identifier + LPAR + arguments + RPAR | \
+        identifier + ':' + single_module_instantiation | \
+        '!' + single_module_instantiation | \
+        '#' + single_module_instantiation | \
+        '%' + single_module_instantiation | \
+        '*' + single_module_instantiation
+
         expression << \
-            TRUE | \
-            FALSE | \
-            UNDEF | \
-            identifier | \
-            expression + '.' + identifier | \
-            dblQuotedString | \
-            number | \
-            LBRACK + expression + ':' <expression> RBRACK | \
-            LBRACK + expression + ':' <expression> ':' <expression> RBRACK | \
-            LBRACK + optional_commas + RBRACK | \
-            LBRACK + vector_expr + optional_commas + RBRACK | \
-            expression + '*' + expression | \
-            expression + '/' + expression | \
-            expression + '%' + expression | \
-            expression + '+' + expression | \
-            expression + '-' + expression | \
-            expression + '<' + expression | \
-            expression + "<=" + expression | \
-            expression + "==" + expression | \
-            expression + "!=" + expression | \
-            expression + ">=" + expression | \
-            expression + '>' + expression | \
-            expression + "&&" + expression | \
-            expression + "||" + expression | \
-            '+' + expression | \
-            '-' + expression | \
-            '!' + expression | \
-            LPAR + expression + RPAR | \
-            expression + '?' + expression + ':' + expression | \
-            expression + LBRACK + expression + RBRACK | \
-            identifier + LPAR + arguments + RPAR
-        
+        TRUE | \
+        FALSE | \
+        UNDEF | \
+        identifier | \
+        expression + '.' + identifier | \
+        dblQuotedString | \
+        number | \
+        LBRACK + expression + ':' < expression > RBRACK | \
+                                                 LBRACK + expression + ':' < expression > ':' < expression > RBRACK | \
+                                                                                                             LBRACK + optional_commas + RBRACK | \
+                                                                                                             LBRACK + vector_expr + optional_commas + RBRACK | \
+                                                                                                             expression + '*' + expression | \
+                                                                                                             expression + '/' + expression | \
+                                                                                                             expression + '%' + expression | \
+                                                                                                             expression + '+' + expression | \
+                                                                                                             expression + '-' + expression | \
+                                                                                                             expression + '<' + expression | \
+                                                                                                             expression + "<=" + expression | \
+                                                                                                             expression + "==" + expression | \
+                                                                                                             expression + "!=" + expression | \
+                                                                                                             expression + ">=" + expression | \
+                                                                                                             expression + '>' + expression | \
+                                                                                                             expression + "&&" + expression | \
+                                                                                                             expression + "||" + expression | \
+                                                                                                             '+' + expression | \
+                                                                                                             '-' + expression | \
+                                                                                                             '!' + expression | \
+                                                                                                             LPAR + expression + RPAR | \
+                                                                                                             expression + '?' + expression + ':' + expression | \
+                                                                                                             expression + LBRACK + expression + RBRACK | \
+                                                                                                             identifier + LPAR + arguments + RPAR
+
         optional_commas << \
-            empty | \
-            ',' + optional_commas
-        
+        empty | \
+        ',' + optional_commas
+
         vector_expr << \
-            expression | \
-            vector_expr + ',' + optional_commas + expression
+        expression | \
+        vector_expr + ',' + optional_commas + expression
 
         parameter = \
             identifier | \
             identifier + EQUAL + expression
-        
+
         parameters << \
-            empty | \
-            parameter | \
-            parameters + ',' + optional_commas + parameter
+        empty | \
+        parameter | \
+        parameters + ',' + optional_commas + parameter
 
         argument = \
             expression | \
             identifier + EQUAL + expression
 
         arguments << \
-            empty | \
-            argument | \
-            arguments + ',' + optional_commas + argument
+        empty | \
+        argument | \
+        arguments + ',' + optional_commas + argument
 
         self.program = Optional(input) + body
 
