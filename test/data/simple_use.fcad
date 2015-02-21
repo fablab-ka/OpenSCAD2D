@@ -1,0 +1,3 @@
+use simple_assign;
+//TODO: newVariable1 = var1;
+newVariable1 = 1;

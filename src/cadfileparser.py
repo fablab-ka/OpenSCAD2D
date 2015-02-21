@@ -126,11 +126,15 @@ class SymbolTable:
         """Displays the symbol table content"""
         # Finding the maximum length for each column
         sym_name = "Symbol name"
-        sym_len = max(max(len(i.name) for i in self.table), len(sym_name))
+        sym_len = 0
+        if len(self.table) > 0:
+            sym_len = max(max(len(i.name) for i in self.table), len(sym_name))
         kind_name = "Kind"
-        kind_len = max(max(len(i.kind) for i in self.table), len(kind_name))
+        kind_len = 0
+        if len(self.table) > 0:
+            kind_len = max(max(len(i.kind) for i in self.table), len(kind_name))
         # print table header
-        print "{0:3s} | {1:^{2}s} | {3:^{4}s} | {4:s}".format(" No", sym_name, sym_len, kind_name, kind_len,
+        print "{0:3s} | {1:^{2}s} | {3:^{4}s} | {5:s}".format(" No", sym_name, sym_len, kind_name, kind_len,
                                                               "Parameters")
         print "-----------------------------" + "-" * (sym_len + kind_len)
         # print symbol table
@@ -141,7 +145,7 @@ class SymbolTable:
                     parameters = p
                 else:
                     parameters += ", " + p
-            print "{0:3d} | {1:^{2}s} | {3:^{4}s} | ({4})".format(i, sym.name, sym_len, sym.kind, kind_len, parameters)
+            print "{0:3d} | {1:^{2}s} | {3:^{4}s} | ({5})".format(i, sym.name, sym_len, sym.kind, kind_len, parameters)
 
     def insert_global_var(self, name):
         return self.insert_id(name, KINDS.GLOBAL_VAR)
@@ -241,7 +245,7 @@ class FcadParser:
 
         statement = Forward()
 
-        assign_statement = (identifier("variable") + EQUAL + expression("expression") +
+        assign_statement = (identifier("variable") + EQUAL + num_expression("expression") +
                             SEMI).setParseAction(self.assign_action)
 
         arguments = delimitedList(expression("exp").setParseAction(self.argument_action))
@@ -249,22 +253,23 @@ class FcadParser:
                        LPAR + Optional(arguments)("args") + RPAR).setParseAction(self.module_call_action)
         module_call_statement = module_call + SEMI
 
-        statement << module_call_statement | assign_statement
+        statement << (module_call_statement | assign_statement)
 
         body = OneOrMore(statement)
 
         self.program = (ZeroOrMore(use) + body).setParseAction(self.program_end_action)
 
-    def lookup_id_action(self, text, loc, var):
+    def lookup_id_action(self, text="", loc=-1, var=None):
+        varname = text if not var else var.name
         """Code executed after recognising an identificator in expression"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
             print "EXP_VAR:", var
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
-        if not self.symtab.contains(var.name, KINDS.GLOBAL_VAR):
-            raise SemanticException("'%s' undefined" % var.name)
-        return var.name
+        if not self.symtab.contains(varname, KINDS.GLOBAL_VAR, None):
+            raise SemanticException("'%s' undefined" % varname)
+        return varname
 
     def constant_action(self, text, loc, const):
         """Code executed after recognising a constant"""
@@ -280,6 +285,7 @@ class FcadParser:
             print "ASSIGN:", assign
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
+
         index = self.symtab.insert_global_var(assign.variable)
         return index
 
@@ -299,218 +305,6 @@ class FcadParser:
     def program_end_action(self):
         print "program_end_action"
 
-    # noinspection PyPep8Naming,PyShadowingBuiltins
-    def xinit_grammar(self):
-        LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA, EQUAL = map(Suppress, "()[]{};,=")
-
-        USE = Keyword("use")
-        MODULE = Keyword("module")
-        FUNCTION = Keyword("function")
-        IF = Keyword("if")
-        ELSE = Keyword("else")
-        TRUE = Keyword("true")
-        FALSE = Keyword("false")
-        UNDEF = Keyword("undef")
-
-        identifier = Word(alphas + "_", alphanums + "_")
-        integer = Regex(r"[+-]?\d+")
-        floatnumber = Regex(r"[-+]?[0-9]*\.?[0-9]+")
-        number = integer | floatnumber
-
-        input = Forward()
-        statement = Forward()
-
-        input << empty | USE + input | statement + input
-
-        body = Forward()
-        body << empty | statement + body
-
-        module_instantiation = Forward()
-        expression = Forward()
-        parameters = Forward()
-        optional_commas = Forward()
-        module_instantiation_list = Forward()
-        single_module_instantiation = Forward()
-        arguments = Forward()
-        vector_expr = Forward()
-
-        #Null operation statement is superfluous
-        statement << SEMI | \
-        LBRACE + body + RBRACE | \
-        module_instantiation | \
-        identifier + EQUAL + expression + SEMI | \
-        MODULE + identifier + LPAR + parameters + optional_commas + RPAR + statement | \
-        FUNCTION + identifier + LPAR + parameters + optional_commas + RPAR + EQUAL + expression + SEMI
-        #Optional commas in the above two seem strange to me. We can have for e.g. module foo(a,,,,,,b){} how on earth can this be useful?
-        #I agree that is makes sence for a module instantiation because we might want to pass undef, but for declarations its just a way
-        #of ensuring we don't have access to unnamed module parameters, so why have them at all?
-
-        children_instantiation = \
-            module_instantiation | \
-            LBRACE + module_instantiation_list + RBRACE
-
-        if_statement = IF + LPAR + expression + RPAR + children_instantiation
-        # why can't we just have statements in our if  why is the following invalid!? if(true) { a=1; cube([10,a,10]); }
-
-        ifelse_statement = \
-            if_statement | \
-            if_statement + ELSE + children_instantiation
-
-        module_instantiation << \
-        single_module_instantiation + SEMI | \
-        single_module_instantiation + children_instantiation | \
-        ifelse_statement
-
-        module_instantiation_list << empty | module_instantiation_list + module_instantiation
-
-        # this is interesting, you can have a label before a module instantiation e.g. foo: cube([10,10,10]); although what this is for I have no idea.
-        single_module_instantiation << \
-        identifier + LPAR + arguments + RPAR | \
-        identifier + ':' + single_module_instantiation | \
-        '!' + single_module_instantiation | \
-        '#' + single_module_instantiation | \
-        '%' + single_module_instantiation | \
-        '*' + single_module_instantiation
-
-        expression << \
-        TRUE | \
-        FALSE | \
-        UNDEF | \
-        identifier | \
-        expression + '.' + identifier | \
-        dblQuotedString | \
-        number | \
-        LBRACK + expression + ':' < expression > RBRACK | \
-                                                 LBRACK + expression + ':' < expression > ':' < expression > RBRACK | \
-                                                                                                             LBRACK + optional_commas + RBRACK | \
-                                                                                                             LBRACK + vector_expr + optional_commas + RBRACK | \
-                                                                                                             expression + '*' + expression | \
-                                                                                                             expression + '/' + expression | \
-                                                                                                             expression + '%' + expression | \
-                                                                                                             expression + '+' + expression | \
-                                                                                                             expression + '-' + expression | \
-                                                                                                             expression + '<' + expression | \
-                                                                                                             expression + "<=" + expression | \
-                                                                                                             expression + "==" + expression | \
-                                                                                                             expression + "!=" + expression | \
-                                                                                                             expression + ">=" + expression | \
-                                                                                                             expression + '>' + expression | \
-                                                                                                             expression + "&&" + expression | \
-                                                                                                             expression + "||" + expression | \
-                                                                                                             '+' + expression | \
-                                                                                                             '-' + expression | \
-                                                                                                             '!' + expression | \
-                                                                                                             LPAR + expression + RPAR | \
-                                                                                                             expression + '?' + expression + ':' + expression | \
-                                                                                                             expression + LBRACK + expression + RBRACK | \
-                                                                                                             identifier + LPAR + arguments + RPAR
-
-        optional_commas << \
-        empty | \
-        ',' + optional_commas
-
-        vector_expr << \
-        expression | \
-        vector_expr + ',' + optional_commas + expression
-
-        parameter = \
-            identifier | \
-            identifier + EQUAL + expression
-
-        parameters << \
-        empty | \
-        parameter | \
-        parameters + ',' + optional_commas + parameter
-
-        argument = \
-            expression | \
-            identifier + EQUAL + expression
-
-        arguments << \
-        empty | \
-        argument | \
-        arguments + ',' + optional_commas + argument
-
-        self.program = Optional(input) + body
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    def xxinit_program(self):
-        LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA = map(Suppress, "()[]{};,")
-        WHILE = Keyword("while")
-        DO = Keyword("do")
-        IF = Keyword("if")
-        ELSE = Keyword("else")
-        RETURN = Keyword("return")
-        MODULE = Keyword("module")
-
-        UNION = Keyword("union")
-        DIFFERENCE = Keyword("difference")
-        INTERSECTION = Keyword("intersection")
-        TRANSLATE = Keyword("translate")
-        ROTATE = Keyword("rotate")
-        HULL = Keyword("hull")
-
-        NAME = Word(alphas + "_", alphanums + "_")
-        integer = Regex(r"[+-]?\d+")
-        floatnumber = Regex(r"[-+]?[0-9]*\.?[0-9]+")
-        char = Regex(r"'.'")
-        string_ = dblQuotedString
-
-        expr = Forward()
-        operand = NAME | integer | char | string_
-        expr << (operatorPrecedence(operand, [
-            (oneOf('! -'), 1, opAssoc.RIGHT),
-            (oneOf('++ --'), 1, opAssoc.RIGHT),
-            (oneOf('++ --'), 1, opAssoc.LEFT),
-            (oneOf('* / %'), 2, opAssoc.LEFT),
-            (oneOf('+ -'), 2, opAssoc.LEFT),
-            (oneOf('< == > <= >= !='), 2, opAssoc.LEFT),
-            (Regex(r'=[^=]'), 2, opAssoc.LEFT),
-        ]) + Optional(LBRACK + expr + RBRACK | LPAR + Group(Optional(delimitedList(expr))) + RPAR)
-        )
-
-        vector = LBRACK + floatnumber + "," + floatnumber + RBRACK
-
-        stmt = Forward()
-        scope = Forward()
-
-        ifstmt = IF - LPAR + expr + RPAR + stmt + Optional(ELSE + stmt)
-        whilestmt = WHILE - LPAR + expr + RPAR + stmt
-        dowhilestmt = DO - stmt + WHILE + LPAR + expr + RPAR + SEMI
-        returnstmt = RETURN - expr + SEMI
-
-        stmt << Group(ifstmt |
-                      whilestmt |
-                      dowhilestmt |
-                      returnstmt |
-                      expr + SEMI |
-                      scope |
-                      LBRACE + ZeroOrMore(stmt) + RBRACE |
-                      SEMI)
-
-        scopeparams = vector | NAME
-        scopetype = UNION | DIFFERENCE | INTERSECTION | TRANSLATE | ROTATE | HULL
-        scope << Group(scopetype + LPAR + Optional(scopeparams) + RPAR + stmt)
-
-        vardecl = Group(NAME + Optional(LBRACK + integer + RBRACK)) + SEMI
-
-        arg = NAME
-        body = ZeroOrMore(vardecl) + ZeroOrMore(stmt)
-        fundecl = Group(MODULE + NAME + LPAR + Optional(Group(delimitedList(arg))) + RPAR +
-                        LBRACE + Group(body) + RBRACE)
-
-        decl = fundecl | vardecl | scope
-
-        program = ZeroOrMore(decl)
-
-        # set parser element names
-        for vname in ("ifstmt whilestmt dowhilestmt returnstmt scope vector "
-                      "NAME fundecl vardecl program arg body stmt".split()):
-            v = vars()[vname]
-            v.setName(vname)
-
-        self.program = program
-
     def parse(self):
         result, error = None, None
         #f = open(self.filename, 'r')
@@ -520,9 +314,12 @@ class FcadParser:
         #print text
 
         try:
-            result = self.program.ignore(cStyleComment).parseFile(self.filename, parseAll=True)
+            singleLineComment = "//" + restOfLine
+            self.program.ignore( singleLineComment )
+            self.program.ignore( cStyleComment )
+            result = self.program.parseFile(self.filename, parseAll=True)
             pprint.pprint(result)
-        except SemanticException, err:
+        except SemanticException, ex:
             error = "failed to parse input. " + str(ex)
         except ParseException as ex:
             error = "failed to parse input. " + str(ex)
