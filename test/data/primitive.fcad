@@ -1,2 +1,2 @@
-//TODO: circle(r=1);
-circle(1);
+circle(r=1);
+circle(2);

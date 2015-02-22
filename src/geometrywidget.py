@@ -12,6 +12,7 @@ class GeometryWidget(QtGui.QWidget):
         self.initUI()
 
     def initUI(self):
+        print "DATA", self.data
         self.setGeometry(300, 300, 800, 600)
         self.setWindowTitle('OpenSCAD2D - ' + os.path.basename(self.filename))
         self.show()

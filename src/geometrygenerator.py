@@ -6,4 +6,5 @@ class GeometryGenerator:
         pass
 
     def generate(self, ast):
+        print "AST", ast
         return "test"

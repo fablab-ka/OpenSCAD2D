@@ -8,7 +8,7 @@ from pyparsing import *
 # 3 - print parsing results only, without executing parse actions (grammar-only testing)
 DEBUG = 2
 
-##########################################################################################
+# #########################################################################################
 ##########################################################################################
 
 
@@ -231,11 +231,20 @@ class FcadParser:
 
         arguments = delimitedList(expression("exp").setParseAction(self.argument_action))
         module_call = ((identifier("name") + FollowedBy("(")).setParseAction(self.module_call_prepare_action) +
-                       LPAR + Optional(arguments)("args") + RPAR).setParseAction(self.module_call_action)
-        module_call_statement = module_call + SEMI
+                       LPAR + Optional(arguments)("args") + RPAR)
+        module_call_statement = (module_call + SEMI).setParseAction(self.module_call_action)
 
-        expression << (module_call |
-                       constant |
+        primitive_argument_assignment_value = (constant |
+                                               identifier("name").setParseAction(self.lookup_id_action) |
+                                               Group(Suppress("(") + num_expression + Suppress(")"))
+        )
+        primitive_argument_assignment = (identifier("variable") + EQUAL + primitive_argument_assignment_value)
+        primitive_argument = (primitive_argument_assignment | expression("exp"))
+        primitive_argument_list = delimitedList(primitive_argument.setParseAction(self.argument_action))
+        primitive_call_statement = ((identifier("name") + FollowedBy("(")).setParseAction(self.primitive_call_prepare_action) +
+                                    LPAR + Optional(primitive_argument_list)("args") + RPAR + SEMI).setParseAction(self.primitive_call_action)
+
+        expression << (constant |
                        identifier("name").setParseAction(self.lookup_id_action) |
                        Group(Suppress("(") + num_expression + Suppress(")")) |
                        Group("+" + expression) |
@@ -248,12 +257,7 @@ class FcadParser:
         assign_statement = (identifier("variable") + EQUAL + num_expression("expression") +
                             SEMI).setParseAction(self.assign_action)
 
-        arguments = delimitedList(expression("exp").setParseAction(self.argument_action))
-        module_call = ((identifier("name") + FollowedBy("(")).setParseAction(self.module_call_prepare_action) +
-                       LPAR + Optional(arguments)("args") + RPAR).setParseAction(self.module_call_action)
-        module_call_statement = module_call + SEMI
-
-        statement << (module_call_statement | assign_statement)
+        statement << (primitive_call_statement | module_call_statement | assign_statement)
 
         body = OneOrMore(statement)
 
@@ -294,13 +298,26 @@ class FcadParser:
         return "use_token"
 
     def argument_action(self, text, loc, argument):
-        print "argument_action"
+        print "argument_action",loc, argument
 
     def module_call_prepare_action(self, text, loc, argument):
         print "module_call_prepare_action"
 
-    def module_call_action(self, text, loc, argument):
+    def module_call_action(self, text, loc, call_name):
         print "module_call_action"
+        return call_name[0]
+
+    def primitive_call_prepare_action(self, text, loc, call_name):
+        print "primitive_call_prepare_action",loc, call_name
+        return call_name[0]
+
+    def primitive_call_action(self, text, loc, argument):
+        print "primitive_call_action",loc, argument
+        return {
+            "type": "primitive",
+            "name": argument[0],
+            "arguments": argument[1:]
+        }
 
     def program_end_action(self):
         print "program_end_action"
@@ -315,8 +332,8 @@ class FcadParser:
 
         try:
             singleLineComment = "//" + restOfLine
-            self.program.ignore( singleLineComment )
-            self.program.ignore( cStyleComment )
+            self.program.ignore(singleLineComment)
+            self.program.ignore(cStyleComment)
             result = self.program.parseFile(self.filename, parseAll=True)
             pprint.pprint(result)
         except SemanticException, ex:
