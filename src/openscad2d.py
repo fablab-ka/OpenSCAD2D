@@ -11,9 +11,11 @@ class OpenSCAD2D:
     def __init__(self, filename):
         self.filename = filename
 
+        self.screen_width, self.screen_height = 800.0, 600.0
+
         self.parser = FcadParser(filename)
         self.file_generator = SvgGenerator()
-        self.geometry_generator = GeometryGenerator()
+        self.geometry_generator = GeometryGenerator(self.screen_width, self.screen_height)
 
         self.watcher = DocumentWatcher(filename, self.on_file_change)
         self.watcher.monitor()
@@ -31,7 +33,7 @@ class OpenSCAD2D:
     def run(self):
         app = QtGui.QApplication(sys.argv)
         data, error = self.update()
-        self.widget = GeometryWidget(self.filename, data, error)
+        self.widget = GeometryWidget(self.filename, data, error, self.screen_width, self.screen_height)
         sys.exit(app.exec_())
 
     def on_file_change(self):

@@ -18,6 +18,9 @@ class KINDS:
     MODULE = "MODULE"
     PARAMETER = "PARAMETER"
 
+class StatementType:
+    Primitive = "primitive"
+    NOP = "NOP"
 
 class SharedData(object):
     def __init__(self):
@@ -192,6 +195,38 @@ class SymbolTable:
 ##########################################################################################
 ##########################################################################################
 
+class Statement:
+    def __init__(self, type, name, arguments):
+        self.type = type
+        self.name = name
+        self.arguments = arguments
+
+    def __repr__(self):
+        return "[STATEMENT: " + self.type + " - " + self.name + " - " + repr(self.arguments) + "]"
+
+class Constant:
+    def __init__(self, data):
+        self.value = data[0]
+        self.type = data[1]
+
+    def __repr__(self):
+        return "[CONSTANT: " + self.value + " (" + self.type + ")]"
+
+class Variable:
+    def __init__(self, identifier):
+        self.identifier = identifier
+
+class Assignment:
+    def __init__(self, identifier, value):
+        self.identifier = identifier
+        self.value = value
+
+    #def __repr__(self):
+     #   return "[ASSIGNMENT: " + self.identifier + " = " + self.value + "]"
+
+##########################################################################################
+##########################################################################################
+
 
 class FcadParser:
     def __init__(self, filename):
@@ -238,7 +273,7 @@ class FcadParser:
                                                identifier("name").setParseAction(self.lookup_id_action) |
                                                Group(Suppress("(") + num_expression + Suppress(")"))
         )
-        primitive_argument_assignment = (identifier("variable") + EQUAL + primitive_argument_assignment_value)
+        primitive_argument_assignment = (identifier("variable") + EQUAL + primitive_argument_assignment_value).setParseAction(self.primitive_argument_assignment_action)
         primitive_argument = (primitive_argument_assignment | expression("exp"))
         primitive_argument_list = delimitedList(primitive_argument.setParseAction(self.argument_action))
         primitive_call_statement = ((identifier("name") + FollowedBy("(")).setParseAction(self.primitive_call_prepare_action) +
@@ -273,7 +308,7 @@ class FcadParser:
             if DEBUG > 2: return
         if not self.symtab.contains(varname, KINDS.GLOBAL_VAR, None):
             raise SemanticException("'%s' undefined" % varname)
-        return varname
+        return [Variable(varname)]
 
     def constant_action(self, text, loc, const):
         """Code executed after recognising a constant"""
@@ -282,7 +317,7 @@ class FcadParser:
             print "CONST:", const
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
-        return const
+        return Constant(const)
 
     def assign_action(self, text, loc, assign):
         if DEBUG > 0:
@@ -291,7 +326,7 @@ class FcadParser:
             if DEBUG > 2: return
 
         index = self.symtab.insert_global_var(assign.variable)
-        return index
+        return StatementType.NOP
 
     def use_action(self, text, loc, use):
         print "use_action"
@@ -311,13 +346,15 @@ class FcadParser:
         print "primitive_call_prepare_action",loc, call_name
         return call_name[0]
 
-    def primitive_call_action(self, text, loc, argument):
-        print "primitive_call_action",loc, argument
-        return {
-            "type": "primitive",
-            "name": argument[0],
-            "arguments": argument[1:]
-        }
+    def primitive_argument_assignment_action(self, text, loc, assignment):
+        print "primitive_argument_assignment_action", assignment
+        return Assignment(assignment[0], assignment[1])
+
+    def primitive_call_action(self, text, loc, call):
+        print "primitive_call_action",loc, call
+        arguments = call[1:]
+        print arguments
+        return Statement(StatementType.Primitive, call[0], arguments)
 
     def program_end_action(self):
         print "program_end_action"
@@ -337,8 +374,8 @@ class FcadParser:
             result = self.program.parseFile(self.filename, parseAll=True)
             pprint.pprint(result)
         except SemanticException, ex:
-            error = "failed to parse input. " + str(ex)
+            error = "failed to parse input. " + repr(ex)
         except ParseException as ex:
-            error = "failed to parse input. " + str(ex)
+            error = "failed to parse input. " + repr(ex)
 
         return result, error

@@ -1,2 +1,4 @@
-circle(r=1);
+circle(r=10);
 circle(2);
+a = 3;
+circle(r=a);

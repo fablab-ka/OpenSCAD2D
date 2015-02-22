@@ -1,5 +1,5 @@
 import os
-from src.cadfileparser import FcadParser
+from src.cadfileparser import FcadParser, StatementType, Statement, Assignment, Constant
 
 import unittest
 
@@ -15,15 +15,20 @@ class TestFcadParser(unittest.TestCase):
 
         if error: self.fail(error)
 
-        self.assertTrue(len(result) == 2)
-        self.assertTrue(result[0]['type'] == 'primitive', "unexpected token type '" + result[0]['type'] + "'")
-        self.assertTrue(result[0]['name'] == 'circle', "unexpected token name '" + result[0]['name'] + "'")
-        self.assertTrue(result[0]['arguments'][0] == 'r', "unexpected argument '" + result[0]['arguments'][0] + "'")
-        self.assertTrue(result[0]['arguments'][1] == '1', "unexpected argument '" + result[0]['arguments'][1] + "'")
+        self.assertTrue(len(result) == 4, "more statements than expected (" + str(len(result)) + ")")
+        self.assertTrue(result[0].type == StatementType.Primitive, "unexpected token type '" + result[0].type + "'")
+        self.assertTrue(result[0].name == 'circle', "unexpected token name '" + result[0].name + "'")
+        self.assertTrue(isinstance(result[0].arguments[0], Assignment), "unexpected argument type")
+        self.assertTrue(result[0].arguments[0].identifier == 'r', "unexpected argument '" + result[0].arguments[0].identifier + "'")
+        self.assertTrue(isinstance(result[0].arguments[0].value, Constant), "unexpected argument value type")
+        self.assertTrue(result[0].arguments[0].value.value == '1', "unexpected argument value value'" + str(result[0].arguments[0].value.value) + "'")
 
-        self.assertTrue(result[1]['type'] == 'primitive', "unexpected token type '" + result[1]['type'] + "'")
-        self.assertTrue(result[1]['name'] == 'circle', "unexpected token name '" + result[1]['name'] + "'")
-        self.assertTrue(result[1]['arguments'][0] == '2', "unexpected argument '" + result[1]['arguments'][0] + "'")
+        self.assertTrue(result[1].type == StatementType.Primitive, "unexpected token type '" + result[1].type + "'")
+        self.assertTrue(result[1].name == 'circle', "unexpected token name '" + result[1].name + "'")
+        self.assertTrue(result[1].arguments[0].value == '2', "unexpected argument value '" + str(result[1].arguments[0].value) + "'")
+        self.assertTrue(result[1].arguments[0].type == 'INT', "unexpected argument value '" + str(result[1].arguments[0].type) + "'")
+
+        # todo test last statements
 
 def create_parse_test(path, file):
     def test(self):
