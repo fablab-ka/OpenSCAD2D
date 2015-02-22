@@ -18,6 +18,8 @@ OpenSCAD2D is a software for creating solid 2D CAD objects.
 API
 ===
 
+The following documentation describes the statements and modifiers that are possible to use with OpenScad2D.
+
 ## Primitives
 
 ### Circle
