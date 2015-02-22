@@ -10,7 +10,7 @@ class GeometryWidget(QtGui.QWidget):
 
         self.filename = filename
         self.data = data
-        self.errorText = error if error else "Loading"
+        self.errorText = error
         self.screen_width = screen_width
         self.screen_height = screen_height
 
@@ -30,11 +30,9 @@ class GeometryWidget(QtGui.QWidget):
 
         qp.setPen(QtGui.QColor(Qt.black))
         if self.data:
-            #TODO zoom & pan
-            print list(self.data.coords)
-            qp.drawPolyline(QPolygonF(map(lambda c: QPointF(c[0], c[1]), list(self.data.coords))))
-
-        self.drawText(event, qp)
+            qp.drawPolyline(self.data)
+        if self.errorText:
+            self.drawText(event, qp)
         qp.end()
 
     def drawText(self, event, qp):
@@ -46,3 +44,4 @@ class GeometryWidget(QtGui.QWidget):
     def setData(self, data, error):
         self.data = data
         self.errorText = error
+        self.updateGeometry()

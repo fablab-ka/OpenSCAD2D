@@ -23,6 +23,7 @@ class OpenSCAD2D:
         self.widget = None
 
     def update(self):
+        self.parser = FcadParser(self.filename)
         ast, error = self.parser.parse()
         print "AST:", ast, ", Error:", error
         data = self.geometry_generator.generate(ast)

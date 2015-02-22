@@ -1,22 +1,29 @@
+from PyQt4.QtCore import QPointF
+from PyQt4.QtGui import QPolygonF
 from shapely import affinity
 from shapely.geometry import Point
 import cadfileparser
 
+class ArgumentParser:
+    def __init__(self, primitive_name, argument_definitions):
+        self.primitive_name = primitive_name
+        self.argument_definitions = argument_definitions
 
-class GeometryGenerator:
-    def __init__(self, screen_width, screen_height):
-        self.default_resolution = 64
+        self.required_arguments = filter(lambda a: not a["optional"], self.argument_definitions)
+
+        self.arguments_by_identifier = {}
+
+        for a in self.argument_definitions:
+            for name in a["names"]:
+                self.arguments_by_identifier[name] = a
+
         self.docu_link = "https://github.com/fablab-ka/OpenSCAD2D"
-
-        self.current_position = [0.0, 0.0]
-        self.screen_width = screen_width
-        self.screen_height = screen_height
 
     def create_docu_clue(self, target):
         target = '#' + target
         return "see documentation (" + self.docu_link + target + ")"
 
-    def extract_assigments(self, arguments):
+    def extract_assignments(self, arguments):
         assignments = []
 
         for a in arguments:
@@ -27,14 +34,18 @@ class GeometryGenerator:
 
         return assignments
 
-    def resolve_value(self, value):
+    def resolve_value(self, value, types=None):
         result = None
 
         if isinstance(value, cadfileparser.Constant):
+            if types != None and not (value.type in types):
+                raise Exception("Invalid type (" + value.type + ") of Constant (" + value.value + ") expected " + ", ".join(types))
+
             if value.type == 'INT':
                 result = int(value.value)
+            #TODO more types
             else:
-                raise Exception("Unknown type (" + value.type + ") of Constant (" + value.identifier + ")")
+                raise Exception("Unknown type (" + value.type + ") of Constant (" + value.value + ")")
         elif isinstance(value, cadfileparser.Variable):
             #todo lookup current value of: value[0].identifier
             result = -1
@@ -43,7 +54,7 @@ class GeometryGenerator:
                 result = None
                 print "WARNING: non-value found"
             elif len(value) > 1:
-                raise "multiple valuata found"
+                raise Exception("multiple values found")
             elif isinstance(value[0], cadfileparser.Variable):
                 #todo lookup current value of: value[0].identifier
                 result = -1
@@ -54,29 +65,55 @@ class GeometryGenerator:
 
         return result
 
-    def create_circle(self, arguments):
-        radius = 1
-        resolution = self.default_resolution
+    def parse(self, arguments):
+        result = [definition["default"] for definition in self.argument_definitions]
 
-        if len(arguments) > 2 or len(arguments) <= 0:
+        if len(arguments) > len(self.argument_definitions) or len(arguments) <= 0:
             raise Exception("wrong number of arguments for circle." + self.create_docu_clue("Circle"))
 
-        if len(arguments) == 1 and not isinstance(arguments[0], cadfileparser.Assignment):
-            radius = self.resolve_value(arguments[0])
-        elif len(arguments) == 2 and not isinstance(arguments[0], cadfileparser.Assignment)\
-             and not isinstance(arguments[1], cadfileparser.Assignment):
-            radius = self.resolve_value(arguments[0].value)
-            resolution = self.resolve_value(arguments[1].value)
-        else:
-            assignments = self.extract_assigments(arguments)
+        if all(map(lambda a: isinstance(a, cadfileparser.Assignment), arguments)):
+            assignments = self.extract_assignments(arguments)
 
             for a in assignments:
-                if a.identifier == "$fn":
-                    resolution = self.resolve_value(a.value)
-                elif a.identifier == "r":
-                    radius = self.resolve_value(a.value)
-                else:
-                    raise Exception("invalid argument for circle." + self.create_docu_clue("Circle"))
+                if not a.identifier in self.arguments_by_identifier.keys():
+                    raise Exception("Unknown argument '" + a.identifier + "' for " + self.primitive_name + "." + self.create_docu_clue("Circle"))
+
+                definition = self.arguments_by_identifier[a.identifier]
+
+                result[definition["index"]] = self.resolve_value(a.value)
+        else:
+            if any(map(lambda a: isinstance(a, cadfileparser.Assignment), arguments)):
+                raise Exception("You can either use Assignments or Arguments e.g. circle(r=1); or circle(1); not both")
+
+            for i in range(len(arguments)):
+                result[i] = self.resolve_value(arguments[i], self.argument_definitions[i]["types"])
+
+        return result
+
+class GeometryGenerator:
+    def __init__(self, screen_width, screen_height):
+        self.default_resolution = 64
+
+        self.current_position = [0.0, 0.0]
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+
+        self.circle_argument_parser = ArgumentParser("circle", [{
+            "names": ["r", "radius"],
+            "types": ["INT"],
+            "default": 1,
+            "optional": False,
+            "index": 0
+        },{
+            "names": ["fn$", "resolution"],
+            "types": ["INT"],
+            "default": self.default_resolution,
+            "optional": True,
+            "index": 1
+        }])
+
+    def create_circle(self, arguments):
+        radius, resolution = self.circle_argument_parser.parse(arguments)
 
         return Point(self.current_position[0], self.current_position[1]).buffer(radius, resolution).exterior
 
@@ -112,5 +149,5 @@ class GeometryGenerator:
             result = None
 
         result = affinity.translate(result, self.screen_width/2, self.screen_height/2)
-
+        result = QPolygonF(map(lambda c: QPointF(c[0], c[1]), list(result.coords)))
         return result
