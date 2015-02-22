@@ -14,6 +14,48 @@ OpenSCAD2D is a software for creating solid 2D CAD objects.
 
 ![Image of First Union](https://raw.githubusercontent.com/fablab-ka/OpenSCAD2D/master/docs/first_union.png)
 
+### TODO
+
+* [ ] Language
+    * [x] Single Line Comments
+    * [x] Multi Line Comments
+    * [ ] Basic Calculations
+    * [ ] Variable assignment & lookup
+    * [ ] Datatypes
+        * [x] integer
+        * [x] float
+        * [ ] boolean
+        * [ ] string
+    * [ ] Primitives
+        * [x] circle
+        * [x] rect
+        * [ ] path
+    * [ ] Attached Modifiers
+        * [x] translate
+        * [x] rotate
+        * [x] scale
+        * [ ] hull
+    * [ ] Scope Modifiers
+        * [ ] translate
+        * [ ] rotate
+        * [ ] scale
+        * [ ] hull
+    * [ ] Modules
+        * [ ] module definition
+        * [ ] module call
+        * [ ] module argument stack evaluation
+    * [ ] Advanced Structures
+        * [ ] if/else statement
+        * [ ] basic loop
+* [ ] Application Frame
+    * [x] auto reload file
+    * [x] commandline argument
+    * [ ] main menu 
+        * [ ] load file 
+        * [ ] exit
+        * [ ] about
+        * [ ] help
+
 
 API
 ===
