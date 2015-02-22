@@ -14,33 +14,37 @@ OpenSCAD2D is a software for creating solid 2D CAD objects.
 
 ![Image of First Union](https://raw.githubusercontent.com/fablab-ka/OpenSCAD2D/master/docs/first_union.png)
 
-#### API
 
-### Primitives
+API
+===
 
-## Circle
+## Primitives
 
-    circle( <radius>, [<resolution>]);
-    circle( r=<radius>, [$fn=<resolution>]);
-    circle( radius=<radius>, [$fn=<resolution>]);
+### Circle
 
-## Rectangle
+    circle( <radius>, [<resolution>] );
+    circle( r=<radius>, [$fn=<resolution>] );
+    circle( radius=<radius>, [$fn=<resolution>] );
 
-    rect( <width>, <height>]);
-    rect( w=<width>, h=<height>]);
-    rect( width=<width>, height=<height>]);
+### Rectangle
 
-## Path
+    rect( <width>, <height>] );
+    rect( w=<width>, h=<height>] );
+    rect( width=<width>, height=<height>] );
+
+### Path
 
 Not yet implemented!
 
-    path( <x1>, <y1>, <x2>, <y2>, ...]);
+    path( <x1>, <y1>, <x2>, <y2>, ... );
 
-### Modifiers
+
+## Modifiers
 
 Modifiers can be written in the form:
 
-    translate(5, 10) rect(10, 10);
+    translate(5, 10)
+    rect(10, 10);
 
 or as a modifier scope
 
@@ -50,22 +54,22 @@ or as a modifier scope
         circle(30);
     }
 
-## Translate
+### Translate
 
-    translate( <x>, <y>);
-    translate( x=<x>, y=y);
+    translate( <x>, <y> );
+    translate( x=<x>, y=y );
 
-## Rotate
+### Rotate
 
-    rotate( <angle>, [<origin x>], [<origin y>], [<use radian>]);
-    rotate( a=<angle>, [x=<origin x>], [y=<origin y>], [rad=<use radian>);
-    rotate( angle=<angle>, [xorigin=<origin x>], [yorigin=<origin y>], [use_radian=<use radian>);
+    rotate( <angle>, [<origin x>], [<origin y>], [<use radian>] );
+    rotate( a=<angle>, [x=<origin x>], [y=<origin y>], [rad=<use radian> );
+    rotate( angle=<angle>, [xorigin=<origin x>], [yorigin=<origin y>], [use_radian=<use radian> );
 
-## Scale
+### Scale
 
-    scale( <x>, <y>);
-    scale( x=<x>, y=y);
+    scale( <x>, <y> );
+    scale( x=<x>, y=y );
 
-## Hull
+### Hull
 
 TBD
