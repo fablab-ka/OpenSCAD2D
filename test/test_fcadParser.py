@@ -15,13 +15,12 @@ class TestFcadParser(unittest.TestCase):
 
         if error: self.fail(error)
 
-        self.assertTrue(len(result) == 4, "more statements than expected (" + str(len(result)) + ")")
         self.assertTrue(result[0].type == StatementType.Primitive, "unexpected token type '" + result[0].type + "'")
         self.assertTrue(result[0].name == 'circle', "unexpected token name '" + result[0].name + "'")
         self.assertTrue(isinstance(result[0].arguments[0], Assignment), "unexpected argument type")
         self.assertTrue(result[0].arguments[0].identifier == 'r', "unexpected argument '" + result[0].arguments[0].identifier + "'")
         self.assertTrue(isinstance(result[0].arguments[0].value, Constant), "unexpected argument value type")
-        self.assertTrue(result[0].arguments[0].value.value == '1', "unexpected argument value value'" + str(result[0].arguments[0].value.value) + "'")
+        self.assertTrue(result[0].arguments[0].value.type == 'INT', "unexpected argument value type'" + str(result[0].arguments[0].value.type) + "'")
 
         self.assertTrue(result[1].type == StatementType.Primitive, "unexpected token type '" + result[1].type + "'")
         self.assertTrue(result[1].name == 'circle', "unexpected token name '" + result[1].name + "'")

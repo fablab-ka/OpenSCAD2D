@@ -20,6 +20,7 @@ class KINDS:
 
 class StatementType:
     Primitive = "primitive"
+    Modifier = "modifier"
     NOP = "NOP"
 
 class SharedData(object):
@@ -196,13 +197,14 @@ class SymbolTable:
 ##########################################################################################
 
 class Statement:
-    def __init__(self, type, name, arguments):
+    def __init__(self, type, name, arguments, modifiers=None):
         self.type = type
         self.name = name
         self.arguments = arguments
+        self.modifiers = modifiers
 
     def __repr__(self):
-        return "[STATEMENT: " + self.type + " - " + self.name + " - " + repr(self.arguments) + "]"
+        return "[STATEMENT: " + self.type + " - " + self.name + " - " + repr(self.arguments) + " - " + repr(self.modifiers) + "]"
 
 class Constant:
     def __init__(self, data):
@@ -257,6 +259,7 @@ class FcadParser:
         floatnumber = Regex(r"[-+]?[0-9]*\.?[0-9]+")
         number = integer | floatnumber
         constant = number.setParseAction(self.constant_action)
+        modifier_name = ( Keyword("translate") |Keyword("rotate") | Keyword("scale") )
 
         use = (USE + identifier("name") + SEMI).setParseAction(self.use_action)
 
@@ -271,12 +274,16 @@ class FcadParser:
 
         primitive_argument_assignment_value = (constant |
                                                identifier("name").setParseAction(self.lookup_id_action) |
-                                               Group(Suppress("(") + num_expression + Suppress(")"))
-        )
+                                               Group(Suppress("(") + num_expression + Suppress(")")) )
+
         primitive_argument_assignment = (identifier("variable") + EQUAL + primitive_argument_assignment_value).setParseAction(self.primitive_argument_assignment_action)
         primitive_argument = (primitive_argument_assignment | expression("exp"))
         primitive_argument_list = delimitedList(primitive_argument.setParseAction(self.argument_action))
-        primitive_call_statement = ((identifier("name") + FollowedBy("(")).setParseAction(self.primitive_call_prepare_action) +
+
+        primitive_modifier = ( (modifier_name + FollowedBy("(")).setParseAction(self.primitive_modifier_prepare_action) +
+                              LPAR + Optional(primitive_argument_list)("args") + RPAR).setParseAction(self.primitive_modifier_action)
+
+        primitive_call_statement = ( ZeroOrMore(primitive_modifier) + (identifier("name") + FollowedBy("(")).setParseAction(self.primitive_call_prepare_action) +
                                     LPAR + Optional(primitive_argument_list)("args") + RPAR + SEMI).setParseAction(self.primitive_call_action)
 
         expression << (constant |
@@ -329,35 +336,55 @@ class FcadParser:
         return StatementType.NOP
 
     def use_action(self, text, loc, use):
-        print "use_action"
+        if DEBUG > 0:
+            print "use_action"
         return "use_token"
 
     def argument_action(self, text, loc, argument):
-        print "argument_action",loc, argument
+        if DEBUG > 0:
+            print "argument_action",loc, argument
 
     def module_call_prepare_action(self, text, loc, argument):
-        print "module_call_prepare_action"
+        if DEBUG > 0:
+            print "module_call_prepare_action"
 
     def module_call_action(self, text, loc, call_name):
-        print "module_call_action"
+        if DEBUG > 0:
+            print "module_call_action"
         return call_name[0]
 
     def primitive_call_prepare_action(self, text, loc, call_name):
-        print "primitive_call_prepare_action",loc, call_name
+        if DEBUG > 0:
+            print "primitive_call_prepare_action",loc, call_name
         return call_name[0]
 
     def primitive_argument_assignment_action(self, text, loc, assignment):
-        print "primitive_argument_assignment_action", assignment
+        if DEBUG > 0:
+            print "primitive_argument_assignment_action", assignment
         return Assignment(assignment[0], assignment[1])
 
     def primitive_call_action(self, text, loc, call):
-        print "primitive_call_action",loc, call
-        arguments = call[1:]
-        print arguments
-        return Statement(StatementType.Primitive, call[0], arguments)
+        if DEBUG > 0:
+            print "primitive_call_action",loc, call
+        modifiers = filter(lambda c: isinstance(c, Statement) and c.type == StatementType.Modifier, call)
+        name = call[len(modifiers)]
+        arguments = call[len(modifiers)+1:]
+        return Statement(StatementType.Primitive, name, arguments, modifiers)
+
+    def primitive_modifier_prepare_action(self, text, loc, modifier):
+        if DEBUG > 0:
+            print "primitive_modifier_prepare_action",loc, modifier
+        return modifier[0]
+
+    def primitive_modifier_action(self, text, loc, modifier):
+        if DEBUG > 0:
+            print "primitive_modifier_action",loc, modifier
+        arguments = modifier[1:]
+        return Statement(StatementType.Modifier, modifier[0], arguments)
 
     def program_end_action(self):
-        print "program_end_action"
+        if DEBUG > 0:
+            print "program_end_action"
 
     def parse(self):
         result, error = None, None

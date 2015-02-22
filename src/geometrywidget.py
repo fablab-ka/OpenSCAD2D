@@ -30,7 +30,8 @@ class GeometryWidget(QtGui.QWidget):
 
         qp.setPen(QtGui.QColor(Qt.black))
         if self.data:
-            qp.drawPolyline(self.data)
+            for elem in self.data:
+                qp.drawPolyline(elem)
         if self.errorText:
             self.drawText(event, qp)
         qp.end()

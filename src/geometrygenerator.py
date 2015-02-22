@@ -1,7 +1,8 @@
 from PyQt4.QtCore import QPointF
 from PyQt4.QtGui import QPolygonF
 from shapely import affinity
-from shapely.geometry import Point
+from shapely.geometry import Point, LinearRing, MultiLineString, MultiPoint
+from shapely.geometry.base import BaseMultipartGeometry
 import cadfileparser
 
 class ArgumentParser:
@@ -100,7 +101,7 @@ class GeometryGenerator:
 
         self.circle_argument_parser = ArgumentParser("circle", [{
             "names": ["r", "radius"],
-            "types": ["INT"],
+            "types": ["INT", "FLOAT"],
             "default": 1,
             "optional": False,
             "index": 0
@@ -112,42 +113,154 @@ class GeometryGenerator:
             "index": 1
         }])
 
+        self.rect_argument_parser = ArgumentParser("rect", [{
+            "names": ["w", "width"],
+            "types": ["INT", "FLOAT"],
+            "default": 1,
+            "optional": False,
+            "index": 0
+        },{
+            "names": ["h", "height"],
+            "types": ["INT", "FLOAT"],
+            "default": 1,
+            "optional": False,
+            "index": 1
+        }])
+
+        self.translate_argument_parser = ArgumentParser("translate", [{
+            "names": ["x"],
+            "types": ["INT", "FLOAT"],
+            "default": 0,
+            "optional": False,
+            "index": 0
+        },{
+            "names": ["y"],
+            "types": ["INT", "FLOAT"],
+            "default": 0,
+            "optional": False,
+            "index": 1
+        }])
+
+        self.rotate_argument_parser = ArgumentParser("rotate", [{
+            "names": ["a", "angle"],
+            "types": ["INT", "FLOAT"],
+            "default": 0,
+            "optional": False,
+            "index": 0
+        },{
+            "names": ["x", "xorigin"],
+            "types": ["INT", "FLOAT"],
+            "default": None,
+            "optional": True,
+            "index": 1
+        },{
+            "names": ["y", "yorigin"],
+            "types": ["INT", "FLOAT"],
+            "default": None,
+            "optional": True,
+            "index": 2
+        },{
+            "names": ["rad", "use_radian"],
+            "types": ["BOOLEAN"],
+            "default": False,
+            "optional": True,
+            "index": 3
+        }])
+
+        self.scale_argument_parser = ArgumentParser("scale", [{
+            "names": ["x"],
+            "types": ["INT", "FLOAT"],
+            "default": 0,
+            "optional": False,
+            "index": 0
+        },{
+            "names": ["y"],
+            "types": ["INT", "FLOAT"],
+            "default": 0,
+            "optional": False,
+            "index": 1
+        }])
+
     def create_circle(self, arguments):
         radius, resolution = self.circle_argument_parser.parse(arguments)
 
-        return Point(self.current_position[0], self.current_position[1]).buffer(radius, resolution).exterior
+        return Point(self.current_position[0], self.current_position[1]).buffer(radius, resolution)
+
+    def create_rect(self, arguments):
+        w, h = self.rect_argument_parser.parse(arguments)
+        x, y = self.current_position
+        return MultiPoint([(x, y), (x, y + h), (x + w, y + h), (x + w, y)]).convex_hull
 
     def create_primitive(self, primitive):
         result = None
+
         if primitive.name == "circle":
             result = self.create_circle(primitive.arguments)
+        elif primitive.name == "rect":
+            result = self.create_rect(primitive.arguments)
         else:
-            #todo proper error handling
             raise Exception("invalid primitive name '" + primitive.name + "'")
+
+        if primitive.modifiers:
+            for modifier in primitive.modifiers:
+                result = self.apply_modifier(result, modifier)
+
+        return result
+
+    def apply_translation(self, geom, translation):
+        x, y = self.translate_argument_parser.parse(translation.arguments)
+        return affinity.translate(geom, x, y)
+
+    def apply_rotation(self, geom, translation):
+        angle, origin_x, origin_y, use_radians = self.rotate_argument_parser.parse(translation.arguments)
+        return affinity.rotate(geom, angle, Point(origin_x, origin_y), use_radians)
+
+    def apply_scale(self, geom, translation):
+        x, y = self.scale_argument_parser.parse(translation.arguments)
+        return affinity.scale(geom, x, y)
+
+    def apply_modifier(self, geom, modifier):
+        result = geom
+
+        if modifier.name == "translate":
+            result = self.apply_translation(geom, modifier)
+        elif modifier.name == "rotate":
+            result = self.apply_rotation(geom, modifier)
+        elif modifier.name == "scale":
+            result = self.apply_scale(geom, modifier)
+        else:
+            raise Exception("Unknown Modifier '" + modifier.name + "'")
 
         return result
 
     def create_union(self, elements):
-        #todo
-        return elements[0]
+        result = elements[0]
+        for elem in elements[1:]:
+            result = result.union(elem)
+        return result
 
     def generate(self, ast):
-        result = []
+        self.current_position = [self.screen_width/2, self.screen_height/2]
+        primitives = []
         for statement in ast:
             if statement == cadfileparser.StatementType.NOP:
                 pass
             elif isinstance(statement, cadfileparser.Statement) and statement.type == cadfileparser.StatementType.Primitive:
-                result.append(self.create_primitive(statement))
+                primitives.append(self.create_primitive(statement))
             else:
                 raise Exception("unknown statement " + repr(statement))
 
-        if len(result) > 1:
-            result = self.create_union(result)
-        elif len(result) == 1:
-            result = result[0]
-        else:
-            result = None
+        root_element = None
+        if len(primitives) > 1:
+            root_element = self.create_union(primitives)
+        elif len(primitives) == 1:
+            root_element = primitives[0]
 
-        result = affinity.translate(result, self.screen_width/2, self.screen_height/2)
-        result = QPolygonF(map(lambda c: QPointF(c[0], c[1]), list(result.coords)))
+        result = []
+        if isinstance(root_element, BaseMultipartGeometry):
+            for geom in root_element.geoms:
+                result.append(QPolygonF(map(lambda c: QPointF(c[0], c[1]), list(geom.coords))))
+        else:
+            result = [QPolygonF(map(lambda c: QPointF(c[0], c[1]), list(root_element.exterior.coords)))]
+
         return result

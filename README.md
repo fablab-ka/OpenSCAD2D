@@ -10,7 +10,9 @@ OpenSCAD2D is a software for creating solid 2D CAD objects.
 * [pyparsing](http://pyparsing.wikispaces.com/Download+and+Installation)
 * [shapely](https://pypi.python.org/pypi/Shapely#downloads)
 
+### Screenshot
 
+![Image of First Union](https://raw.githubusercontent.com/fablab-ka/OpenSCAD2D/master/docs/first_union.png)
 
 ### API
 
