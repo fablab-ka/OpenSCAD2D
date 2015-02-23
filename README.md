@@ -1,7 +1,11 @@
+[![Travis CI](https://api.travis-ci.org/fablab-ka/OpenSCAD2D.png)](https://travis-ci.org/fablab-ka/OpenSCAD2D)
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/fablab-ka/openscad2d/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
 OpenSCAD2D
 ==========
+
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=fablab&url=<a href="https://flattr.com/submit/auto?user_id=fablab&url=https%3A%2F%2Fgithub.com%2Ffablab-ka%2FOpenSCAD2D" target="_blank"><img src="//button.flattr.com/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a>&title=OpenSCAD2D&language=&tags=github&category=software)
+
 
 OpenSCAD2D is a software for creating solid 2D CAD objects.
 
