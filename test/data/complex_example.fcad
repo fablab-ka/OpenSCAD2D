@@ -1,0 +1,8 @@
+plate_width = 300;
+plate_height = 300;
+
+difference() {
+	rect(plate_width, plate_height);
+
+	rect(plate_width, plate_height);
+}
