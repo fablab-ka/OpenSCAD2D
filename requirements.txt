@@ -1,0 +1,4 @@
+pyparsing==2.0.3
+pywatch==0.4
+Shapely==1.5.6
+# also: PyQt4

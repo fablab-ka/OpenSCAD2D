@@ -3,10 +3,11 @@ from src.cadfileparser import FcadParser, StatementType, Statement, Assignment, 
 
 import unittest
 
+file_dir = os.path.dirname(os.path.realpath(__file__))
 
 class TestFcadParser(unittest.TestCase):
     def test_primitive_assignment(self):
-        filename = os.path.abspath('../test/data/primitive.fcad')
+        filename = os.path.abspath(file_dir + '/../test/data/primitive.fcad')
         print '\n\n ============   clean primitive calls   ============'
         parser = FcadParser(filename)
         self.assertTrue(parser.program)
@@ -41,8 +42,11 @@ def create_parse_test(path, file):
         if error: self.fail(error)
     return test
 
-path = '../test/data/'
+path = file_dir + '/../test/data/'
 for file in os.listdir(path):
     test_name = 'test %s' % file
     test = create_parse_test(path, file)
     setattr(TestFcadParser, test_name, test)
+
+if __name__ == '__main__':
+    unittest.main()
