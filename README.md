@@ -34,29 +34,35 @@ OpenSCAD2D is a software for creating solid 2D CAD objects.
 ### TODO
 
 * [ ] Language
-    * [x] Single Line Comments
-    * [x] Multi Line Comments
+    * [x] ~~Single Line Comments~~
+    * [x] ~~Multi Line Comments~~
     * [ ] Basic Calculations
     * [ ] Variable assignment & lookup
+    * [ ] Math functions (cos sin tan acos asin atan atan2 abs ceil concat cross exp floor ln len let log lookup max min norm pow rands round sign sqrt)
     * [ ] Datatypes
-        * [x] integer
-        * [x] float
+        * [x] ~~integer~~
+        * [x] ~~float~~
         * [ ] boolean
         * [ ] string
     * [ ] Primitives
-        * [x] circle
-        * [x] rect
+        * [x] ~~circle~~
+        * [x] ~~rect~~
         * [ ] path
     * [ ] Attached Modifiers
-        * [x] translate
-        * [x] rotate
-        * [x] scale
-        * [ ] hull
+        * [x] ~~translate~~
+        * [x] ~~rotate~~
+        * [x] ~~scale~~
+        * [ ] Debugging Aids (% # ! *)
+        * [ ] mirror
     * [ ] Scope Modifiers
         * [ ] translate
         * [ ] rotate
         * [ ] scale
         * [ ] hull
+        * [ ] union
+        * [ ] difference
+        * [ ] intersection
+        * [ ] assign
     * [ ] Modules
         * [ ] module definition
         * [ ] module call
@@ -64,9 +70,10 @@ OpenSCAD2D is a software for creating solid 2D CAD objects.
     * [ ] Advanced Structures
         * [ ] if/else statement
         * [ ] basic loop
+        * [ ] include statements
 * [ ] Application Frame
-    * [x] auto reload file
-    * [x] commandline argument
+    * [x] ~~auto reload file~~
+    * [x] ~~commandline argument~~
     * [ ] main menu 
         * [ ] load file 
         * [ ] exit
@@ -83,53 +90,69 @@ The following documentation describes the statements and modifiers that are poss
 
 ### Circle
 
-    circle( <radius>, [<resolution>] );
-    circle( r=<radius>, [$fn=<resolution>] );
-    circle( radius=<radius>, [$fn=<resolution>] );
+```OpenSCAD
+circle( <radius>, [<resolution>] );
+circle( r=<radius>, [$fn=<resolution>] );
+circle( radius=<radius>, [$fn=<resolution>] );
+```
 
 ### Rectangle
 
-    rect( <width>, <height>] );
-    rect( w=<width>, h=<height>] );
-    rect( width=<width>, height=<height>] );
+```OpenSCAD
+rect( <width>, <height>] );
+rect( w=<width>, h=<height>] );
+rect( width=<width>, height=<height>] );
+```
 
 ### Path
 
 Not yet implemented!
 
-    path( <x1>, <y1>, <x2>, <y2>, ... );
+```OpenSCAD
+path( <x1>, <y1>, <x2>, <y2>, ... );
+```
 
 
 ## Modifiers
 
 Modifiers can be written in the form:
 
-    translate(5, 10)
-    rect(10, 10);
+```OpenSCAD
+translate(5, 10)
+rect(10, 10);
+```
 
 or as a modifier scope
 
-    translate(5, 10) {
-        rect(10, 10);
-    
-        circle(30);
-    }
+```OpenSCAD
+translate(5, 10) {
+  rect(10, 10);
+
+  circle(30);
+}
+```
 
 ### Translate
 
-    translate( <x>, <y> );
-    translate( x=<x>, y=y );
+```OpenSCAD
+translate( <x>, <y> );
+translate( x=<x>, y=y );
+```
 
 ### Rotate
 
-    rotate( <angle>, [<origin x>], [<origin y>], [<use radian>] );
-    rotate( a=<angle>, [x=<origin x>], [y=<origin y>], [rad=<use radian> );
-    rotate( angle=<angle>, [xorigin=<origin x>], [yorigin=<origin y>], [use_radian=<use radian> );
+```OpenSCAD
+rotate( <angle>, [<origin x>], [<origin y>], [<use radian>] );
+rotate( a=<angle>, [x=<origin x>], [y=<origin y>], [rad=<use radian> );
+rotate( angle=<angle>, [xorigin=<origin x>], [yorigin=<origin y>], [use_radian=<use radian> );
+```
 
 ### Scale
 
-    scale( <x>, <y> );
-    scale( x=<x>, y=y );
+```OpenSCAD
+scale( <x>, <y> );
+scale( x=<x>, y=y );
+```
 
 ### Hull
 
