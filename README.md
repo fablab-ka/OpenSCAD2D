@@ -3,6 +3,8 @@ OpenSCAD2D
 
 OpenSCAD2D is a software for creating solid 2D CAD objects.
 
+This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www.openscad.org/).
+
 ### Content
 
 * General Information
