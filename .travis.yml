@@ -28,3 +28,6 @@ install:
   - "pip install ."
   - "pip install -r requirements.txt --use-mirrors"
 script:  python test.py
+notifications:
+  email:
+    - sven@fablab-karlsruhe.de
