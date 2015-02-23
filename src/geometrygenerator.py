@@ -1,3 +1,4 @@
+from __future__ import print_function
 from PyQt4.QtCore import QPointF
 from PyQt4.QtGui import QPolygonF
 from shapely import affinity
@@ -53,7 +54,7 @@ class ArgumentParser:
         elif isinstance(value, list):
             if len(value) == 0:
                 result = None
-                print "WARNING: non-value found"
+                print("WARNING: non-value found")
             elif len(value) > 1:
                 raise Exception("multiple values found")
             elif isinstance(value[0], cadfileparser.Variable):

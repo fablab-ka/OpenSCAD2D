@@ -71,6 +71,8 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
         * [ ] difference
         * [ ] intersection
         * [ ] assign
+        * [ ] combine
+        * [ ] knapsack
     * [ ] Modules
         * [ ] module definition
         * [ ] module call

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 from src.cadfileparser import FcadParser, StatementType, Statement, Assignment, Constant
 
@@ -8,7 +9,7 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 class TestFcadParser(unittest.TestCase):
     def test_primitive_assignment(self):
         filename = os.path.abspath(file_dir + '/../test/data/primitive.fcad')
-        print '\n\n ============   clean primitive calls   ============'
+        print('\n\n ============   clean primitive calls   ============')
         parser = FcadParser(filename)
         self.assertTrue(parser.program)
 
@@ -33,7 +34,7 @@ class TestFcadParser(unittest.TestCase):
 def create_parse_test(path, file):
     def test(self):
         filename = os.path.abspath(path + file)
-        print '\n\n ============   ', file, '   ============'
+        print('\n\n ============   ', file, '   ============')
         parser = FcadParser(filename)
         self.assertTrue(parser.program)
 

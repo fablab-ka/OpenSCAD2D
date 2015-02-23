@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pprint
 from pyparsing import *
 
@@ -138,9 +139,9 @@ class SymbolTable:
         if len(self.table) > 0:
             kind_len = max(max(len(i.kind) for i in self.table), len(kind_name))
         # print table header
-        print "{0:3s} | {1:^{2}s} | {3:^{4}s} | {5:s}".format(" No", sym_name, sym_len, kind_name, kind_len,
-                                                              "Parameters")
-        print "-----------------------------" + "-" * (sym_len + kind_len)
+        print("{0:3s} | {1:^{2}s} | {3:^{4}s} | {5:s}".format(" No", sym_name, sym_len, kind_name, kind_len,
+                                                              "Parameters"))
+        print("-----------------------------" + "-" * (sym_len + kind_len))
         # print symbol table
         for i, sym in enumerate(self.table):
             parameters = ""
@@ -149,7 +150,7 @@ class SymbolTable:
                     parameters = p
                 else:
                     parameters += ", " + p
-            print "{0:3d} | {1:^{2}s} | {3:^{4}s} | ({5})".format(i, sym.name, sym_len, sym.kind, kind_len, parameters)
+            print("{0:3d} | {1:^{2}s} | {3:^{4}s} | ({5})".format(i, sym.name, sym_len, sym.kind, kind_len, parameters))
 
     def insert_global_var(self, name):
         return self.insert_id(name, KINDS.GLOBAL_VAR)
@@ -310,7 +311,7 @@ class FcadParser:
         """Code executed after recognising an identificator in expression"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "EXP_VAR:", var
+            print("EXP_VAR:", var)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         if not self.symtab.contains(varname, KINDS.GLOBAL_VAR, None):
@@ -321,14 +322,14 @@ class FcadParser:
         """Code executed after recognising a constant"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "CONST:", const
+            print("CONST:", const)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         return Constant(const)
 
     def assign_action(self, text, loc, assign):
         if DEBUG > 0:
-            print "ASSIGN:", assign
+            print("ASSIGN:", assign)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
 
@@ -337,35 +338,35 @@ class FcadParser:
 
     def use_action(self, text, loc, use):
         if DEBUG > 0:
-            print "use_action"
+            print("use_action")
         return "use_token"
 
     def argument_action(self, text, loc, argument):
         if DEBUG > 0:
-            print "argument_action",loc, argument
+            print("argument_action",loc, argument)
 
     def module_call_prepare_action(self, text, loc, argument):
         if DEBUG > 0:
-            print "module_call_prepare_action"
+            print("module_call_prepare_action")
 
     def module_call_action(self, text, loc, call_name):
         if DEBUG > 0:
-            print "module_call_action"
+            print("module_call_action")
         return call_name[0]
 
     def primitive_call_prepare_action(self, text, loc, call_name):
         if DEBUG > 0:
-            print "primitive_call_prepare_action",loc, call_name
+            print("primitive_call_prepare_action",loc, call_name)
         return call_name[0]
 
     def primitive_argument_assignment_action(self, text, loc, assignment):
         if DEBUG > 0:
-            print "primitive_argument_assignment_action", assignment
+            print("primitive_argument_assignment_action", assignment)
         return Assignment(assignment[0], assignment[1])
 
     def primitive_call_action(self, text, loc, call):
         if DEBUG > 0:
-            print "primitive_call_action",loc, call
+            print("primitive_call_action",loc, call)
         modifiers = filter(lambda c: isinstance(c, Statement) and c.type == StatementType.Modifier, call)
         name = call[len(modifiers)]
         arguments = call[len(modifiers)+1:]
@@ -373,18 +374,18 @@ class FcadParser:
 
     def primitive_modifier_prepare_action(self, text, loc, modifier):
         if DEBUG > 0:
-            print "primitive_modifier_prepare_action",loc, modifier
+            print("primitive_modifier_prepare_action",loc, modifier)
         return modifier[0]
 
     def primitive_modifier_action(self, text, loc, modifier):
         if DEBUG > 0:
-            print "primitive_modifier_action",loc, modifier
+            print("primitive_modifier_action",loc, modifier)
         arguments = modifier[1:]
         return Statement(StatementType.Modifier, modifier[0], arguments)
 
     def program_end_action(self):
         if DEBUG > 0:
-            print "program_end_action"
+            print("program_end_action")
 
     def parse(self):
         result, error = None, None
@@ -392,7 +393,7 @@ class FcadParser:
         #text = f.read()
         #f.close()
 
-        #print text
+        #print(text)
 
         try:
             singleLineComment = "//" + restOfLine
@@ -400,7 +401,7 @@ class FcadParser:
             self.program.ignore(cStyleComment)
             result = self.program.parseFile(self.filename, parseAll=True)
             pprint.pprint(result)
-        except SemanticException, ex:
+        except SemanticException as ex:
             error = "failed to parse input. " + repr(ex)
         except ParseException as ex:
             error = "failed to parse input. " + repr(ex)

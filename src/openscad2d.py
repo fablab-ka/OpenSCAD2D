@@ -1,3 +1,4 @@
+from __future__ import print_function
 from cadfileparser import *
 import sys
 from documentwatcher import DocumentWatcher
@@ -25,7 +26,7 @@ class OpenSCAD2D:
     def update(self):
         self.parser = FcadParser(self.filename)
         ast, error = self.parser.parse()
-        print "AST:", ast, ", Error:", error
+        print("AST:", ast, ", Error:", error)
         data = self.geometry_generator.generate(ast)
         if self.widget:
             self.widget.setData(data, error)

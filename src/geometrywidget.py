@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import QPointF, Qt
@@ -17,7 +18,7 @@ class GeometryWidget(QtGui.QWidget):
         self.initUI()
 
     def initUI(self):
-        print "DATA", self.data
+        print("DATA", self.data)
         self.setGeometry(300, 300, self.screen_width, self.screen_height)
         self.setWindowTitle('OpenSCAD2D - ' + os.path.basename(self.filename))
         self.show()

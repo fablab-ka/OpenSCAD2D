@@ -1,9 +1,20 @@
+fn = 128;
+
 plate_width = 300;
 plate_height = 300;
+number_of_rows = 3;
+number_of_cols = 3;
+hole_radius = 10;
+hole_spacing = 20;
 
 /*difference() {
 	rect(plate_width, plate_height);
 
-	rect(plate_width, plate_height);
+	for (y = [0:number_of_rows]) {
+		for (x = [0:number_of_cols]) {
+			translate(x * hole_spacing, y * hole_spacing)
+			circle(r=hole_radius, $fn=fn);
+		}
+	}
 }
 */
