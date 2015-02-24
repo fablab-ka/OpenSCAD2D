@@ -69,8 +69,8 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
         * [ ] rotate
         * [ ] scale
         * [ ] hull
-        * [ ] union
-        * [ ] difference
+        * [x] union
+        * [x] difference
         * [ ] intersection
         * [ ] assign
         * [ ] combine
