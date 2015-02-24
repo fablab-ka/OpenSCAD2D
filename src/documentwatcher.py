@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pywatch
 
 
@@ -11,4 +12,4 @@ class DocumentWatcher(pywatch.Watcher):
         if not self.callback is None:
             self.callback()
         else:
-            print "[error] callback not defined"
+            print("[error] callback not defined")
