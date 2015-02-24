@@ -43,7 +43,7 @@ class OpenSCAD2D:
 if __name__ == "__main__":
     if len(sys.argv) <= 1:
         #print "no"
-        program = OpenSCAD2D("../test/data/translate.fcad")
+        program = OpenSCAD2D("../test/data/difference.fcad")
         program.run()
     else:
         program = OpenSCAD2D(sys.argv[1])

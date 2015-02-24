@@ -196,6 +196,15 @@ class SymbolTable:
 ##########################################################################################
 ##########################################################################################
 
+class Scope:
+    def __init__(self, name, arguments, children):
+        self.name = name
+        self.arguments = arguments
+        self.children = children
+
+    def __repr__(self):
+        return "[SCOPE: " + self.name + " - " + repr(self.arguments) + " - " + repr(self.children) + "]"
+
 class Statement:
     def __init__(self, type, name, arguments, modifiers=None):
         self.type = type
@@ -299,7 +308,10 @@ class FcadParser:
         assign_statement = (identifier("variable") + EQUAL + num_expression("expression") +
                             SEMI).setParseAction(self.assign_action)
 
-        statement << (primitive_call_statement | module_call_statement | assign_statement)
+        modifier_scope = ( (identifier("Name") + LPAR + Optional(primitive_argument_list)("args") + RPAR + FollowedBy("{")).setParseAction(self.modifier_scope_prepare_action) +
+                            LBRACE + ZeroOrMore(statement) + RBRACE ).setParseAction(self.modifier_scope_action)
+
+        statement << (primitive_call_statement | module_call_statement | assign_statement | modifier_scope)
 
         body = OneOrMore(statement)
 
@@ -381,6 +393,20 @@ class FcadParser:
             print "primitive_modifier_action",loc, modifier
         arguments = modifier[1:]
         return Statement(StatementType.Modifier, modifier[0], arguments)
+
+    def modifier_scope_prepare_action(self, text, loc, scope):
+        if DEBUG > 0:
+            print "modifier_scope_prepare_action",loc, scope
+
+        return Scope(scope[0], scope[1:], [])
+
+    def modifier_scope_action(self, text, loc, scope):
+        if DEBUG > 0:
+            print "modifier_scope_action",loc, scope
+
+        result = scope[0]
+        result.children = scope[1:]
+        return result
 
     def program_end_action(self):
         if DEBUG > 0:

@@ -239,16 +239,52 @@ class GeometryGenerator:
             result = result.union(elem)
         return result
 
+    def create_difference(self, elements):
+        result = elements[0]
+        for elem in elements[1:]:
+            result = result.difference(elem)
+        return result
+
+    def being_scope(self, scope):
+        if scope.name == "union":
+            pass
+        elif scope.name == "difference":
+            pass
+        else:
+            raise Exception("Unknown Scope '" + scope.name + "'")
+
+    def end_scope(self, scope, primitives):
+        if scope.name == "union":
+            result = self.create_union(primitives)
+        elif scope.name == "difference":
+            result = self.create_difference(primitives)
+        else:
+            raise Exception("Unknown Scope '" + scope.name + "'")
+
+        return result
+
+    def extract_primitives(self, list):
+        result = []
+
+        for expression in list:
+            if isinstance(expression, cadfileparser.Statement) and expression.type == cadfileparser.StatementType.NOP:
+                pass
+            elif isinstance(expression, cadfileparser.Statement) and expression.type == cadfileparser.StatementType.Primitive:
+                result.append(self.create_primitive(expression))
+            elif isinstance(expression, cadfileparser.Scope):
+                self.being_scope(expression)
+                primitives = self.extract_primitives(expression.children)
+                primitives = self.end_scope(expression, primitives)
+                result.append(primitives)
+            else:
+                raise Exception("unknown expression " + repr(expression))
+
+        return result
+
     def generate(self, ast):
         self.current_position = [self.screen_width/2, self.screen_height/2]
-        primitives = []
-        for statement in ast:
-            if statement == cadfileparser.StatementType.NOP:
-                pass
-            elif isinstance(statement, cadfileparser.Statement) and statement.type == cadfileparser.StatementType.Primitive:
-                primitives.append(self.create_primitive(statement))
-            else:
-                raise Exception("unknown statement " + repr(statement))
+
+        primitives = self.extract_primitives(ast)
 
         root_element = None
         if len(primitives) > 1:
