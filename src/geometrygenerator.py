@@ -39,7 +39,11 @@ class ArgumentParser:
     def resolve_value(self, value, types=None):
         result = None
 
-        if isinstance(value, cadfileparser.Constant):
+        if isinstance(value, float) or isinstance(value, long) or isinstance(value, bool):
+            result = value
+        elif isinstance(value, cadfileparser.BoolOperand):
+            result = value.value
+        elif isinstance(value, cadfileparser.Constant):
             if types != None and not (value.type in types):
                 raise Exception("Invalid type (" + value.type + ") of Constant (" + value.value + ") expected " + ", ".join(types))
 
@@ -61,9 +65,9 @@ class ArgumentParser:
                 #todo lookup current value of: value[0].identifier
                 result = -1
             else:
-                raise Exception("Unknown type Value (" + repr(value[0]) + ")")
+                raise Exception("Unknown Value type (" + str(type(value[0])) + ")")
         else:
-            raise Exception("Unknown type Value (" + repr(value) + ")")
+            raise Exception("Unknown Value type (" + str(type(value)) + ")")
 
         return result
 
@@ -182,6 +186,20 @@ class GeometryGenerator:
             "index": 1
         }])
 
+        self.simplify_argument_parser = ArgumentParser("scale", [{
+            "names": ["t", "tolerance"],
+            "types": ["INT", "FLOAT"],
+            "default": 0.5,
+            "optional": False,
+            "index": 0
+        },{
+            "names": ["p", "preserve_topology"],
+            "types": ["BOOLEAN"],
+            "default": False,
+            "optional": True,
+            "index": 1
+        }])
+
     def create_circle(self, arguments):
         radius, resolution = self.circle_argument_parser.parse(arguments)
 
@@ -220,6 +238,10 @@ class GeometryGenerator:
         x, y = self.scale_argument_parser.parse(translation.arguments)
         return affinity.scale(geom, x, y)
 
+    def apply_simplify(self, geom, translation):
+        tolerance, preserve_topology = self.simplify_argument_parser.parse(translation.arguments)
+        return geom.simplify(tolerance, preserve_topology)
+
     def apply_modifier(self, geom, modifier):
         result = geom
 
@@ -229,6 +251,8 @@ class GeometryGenerator:
             result = self.apply_rotation(geom, modifier)
         elif modifier.name == "scale":
             result = self.apply_scale(geom, modifier)
+        elif modifier.name == "simplify":
+            result = self.apply_simplify(geom, modifier)
         else:
             raise Exception("Unknown Modifier '" + modifier.name + "'")
 
@@ -246,10 +270,18 @@ class GeometryGenerator:
             result = result.difference(elem)
         return result
 
+    def create_intersection(self, elements):
+        result = elements[0]
+        for elem in elements[1:]:
+            result = result.intersection(elem)
+        return result
+
     def being_scope(self, scope):
         if scope.name == "union":
             pass
         elif scope.name == "difference":
+            pass
+        elif scope.name == "intersection":
             pass
         else:
             raise Exception("Unknown Scope '" + scope.name + "'")
@@ -259,8 +291,21 @@ class GeometryGenerator:
             result = self.create_union(primitives)
         elif scope.name == "difference":
             result = self.create_difference(primitives)
+        elif scope.name == "intersection":
+            result = self.create_intersection(primitives)
         else:
             raise Exception("Unknown Scope '" + scope.name + "'")
+
+        return result
+
+    def create_scope(self, scope):
+        self.being_scope(scope)
+        result = self.extract_primitives(scope.children)
+        result = self.end_scope(scope, result)
+
+        if scope.modifiers:
+            for modifier in scope.modifiers:
+                result = self.apply_modifier(result, modifier)
 
         return result
 
@@ -268,15 +313,10 @@ class GeometryGenerator:
         result = []
 
         for expression in list:
-            if isinstance(expression, cadfileparser.Statement) and expression.type == cadfileparser.StatementType.NOP:
-                pass
-            elif isinstance(expression, cadfileparser.Statement) and expression.type == cadfileparser.StatementType.Primitive:
+            if isinstance(expression, cadfileparser.Statement) and expression.type == cadfileparser.StatementType.Primitive:
                 result.append(self.create_primitive(expression))
             elif isinstance(expression, cadfileparser.Scope):
-                self.being_scope(expression)
-                primitives = self.extract_primitives(expression.children)
-                primitives = self.end_scope(expression, primitives)
-                result.append(primitives)
+                result.append(self.create_scope(expression))
             else:
                 raise Exception("unknown expression " + repr(expression))
 

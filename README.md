@@ -27,7 +27,14 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
         * [Translate](#Translate)
         * [Rotate](#Rotate)
         * [Scale](#Scale)
-        * [Hull](#Hull)
+    * [Scope Modifiers](#Scope Modifiers)
+        * [Translate](#Translation Scope)
+        * [Rotate](#Rotation Scope)
+        * [Scale](#Scale Scope)
+        * [Hull](#Hull Scope)
+        * [Union](#Union)
+        * [Difference](#Difference)
+        * [Intersection](#Intersection)
 
 #### Dependencies
 
@@ -46,13 +53,14 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
 * [ ] Language
     * [x] ~~Single Line Comments~~
     * [x] ~~Multi Line Comments~~
-    * [ ] Basic Calculations
+    * [x] ~~Basic Calculations~~
     * [ ] Variable assignment & lookup
     * [ ] Math functions (cos sin tan acos asin atan atan2 abs ceil concat cross exp floor ln len let log lookup max min norm pow rands round sign sqrt)
+    * [ ] print statement
     * [ ] Datatypes
         * [x] ~~integer~~
         * [x] ~~float~~
-        * [ ] boolean
+        * [x] ~~boolean~~
         * [ ] string
     * [ ] Primitives
         * [x] ~~circle~~
@@ -69,12 +77,12 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
         * [ ] rotate
         * [ ] scale
         * [ ] hull
-        * [x] union
-        * [x] difference
-        * [ ] intersection
-        * [ ] assign
+        * [x] ~~union~~
+        * [x] ~~difference~~
+        * [x] ~~intersection~~
         * [ ] combine
         * [ ] knapsack
+        * [ ] assign
     * [ ] Modules
         * [ ] module definition
         * [ ] module call
@@ -127,22 +135,7 @@ path( <x1>, <y1>, <x2>, <y2>, ... );
 
 ## Modifiers
 
-Modifiers can be written in the form:
-
-```OpenSCAD
-translate(5, 10)
-rect(10, 10);
-```
-
-or as a modifier scope
-
-```OpenSCAD
-translate(5, 10) {
-  rect(10, 10);
-
-  circle(30);
-}
-```
+Modifiers influence the following statement
 
 ### Translate
 
@@ -164,9 +157,89 @@ rotate( angle=<angle>, [xorigin=<origin x>], [yorigin=<origin y>], [use_radian=<
 ```OpenSCAD
 scale( <x>, <y> );
 scale( x=<x>, y=y );
+
+### Simplify
+Produces a simplified geometry using the Douglas-Puecker algorithm.
+Coordinates of the simplified geometry will be no more than the tolerance distance from the original. 
+Unless the topology preserving option is used, the algorithm may produce self-intersecting or otherwise invalid geometries.
+
+```OpenSCAD
+simplify(1, False)
+circle(30);
 ```
 
-### Hull
 
-TBD
+## Scope Modifiers
 
+Scope Modifiers influence all it's child statements.
+
+
+### Translation Scope
+
+```OpenSCAD
+translate(5, 10) {
+  rect(10, 10);
+
+  circle(30);
+}
+```
+
+### Rotation Scope
+
+```OpenSCAD
+rotate(45) {
+  rect(10, 10);
+
+  circle(30);
+}
+```
+
+### Scale Scope
+
+```OpenSCAD
+scale(1, 2) {
+  rect(10, 10);
+
+  circle(30);
+}
+```
+
+### Hull Scope
+
+```OpenSCAD
+hull() {
+  rect(10, 10);
+
+  circle(30);
+}
+```
+
+### Union
+
+```OpenSCAD
+union() {
+  rect(10, 10);
+
+  circle(30);
+}
+```
+
+### Difference
+
+```OpenSCAD
+difference() {
+  rect(10, 10);
+
+  circle(30);
+}
+```
+
+### Intersection
+
+```OpenSCAD
+intersection() {
+  rect(10, 10);
+
+  circle(30);
+}
+```

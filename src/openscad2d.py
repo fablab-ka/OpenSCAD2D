@@ -27,9 +27,16 @@ class OpenSCAD2D:
         self.parser = FcadParser(self.filename)
         ast, error = self.parser.parse()
         print("AST:", ast, ", Error:", error)
-        data = self.geometry_generator.generate(ast)
+
+        if not error:
+            data = self.geometry_generator.generate(ast)
+        else:
+            raise Exception(error)
+
+
         if self.widget:
             self.widget.setData(data, error)
+
         return data, error
 
     def run(self):
@@ -44,7 +51,7 @@ class OpenSCAD2D:
 if __name__ == "__main__":
     if len(sys.argv) <= 1:
         #print "no"
-        program = OpenSCAD2D("../test/data/difference.fcad")
+        program = OpenSCAD2D("../test/data/simplify.fcad")
         program.run()
     else:
         program = OpenSCAD2D(sys.argv[1])

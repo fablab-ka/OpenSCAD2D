@@ -1,0 +1,8 @@
+simplify(0.5)
+union(){
+    simplify(100, true)
+	translate(50, 50)
+    circle(100);
+
+    circle(50);
+}
