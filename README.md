@@ -1,5 +1,4 @@
 [![Travis CI](https://api.travis-ci.org/fablab-ka/OpenSCAD2D.png)](https://travis-ci.org/fablab-ka/OpenSCAD2D)
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/fablab-ka/openscad2d/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
 OpenSCAD2D
 ==========
@@ -94,6 +93,7 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
 * [ ] Application Frame
     * [x] ~~auto reload file~~
     * [x] ~~commandline argument~~
+    * [ ] Sexy UI
     * [ ] main menu 
         * [ ] load file 
         * [ ] exit
