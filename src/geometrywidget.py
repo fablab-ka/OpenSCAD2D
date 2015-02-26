@@ -1,12 +1,12 @@
 from __future__ import print_function
-import os
+import os, svgwrite
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import QPointF, Qt
-from PyQt4.QtGui import QPolygonF, QPainterPath, QPolygon
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QMessageBox
 
 
-class GeometryWidget(QtGui.QWidget):
-    def __init__(self, filename, data, error, screen_width, screen_height):
+class GeometryWidget(QtGui.QMainWindow):
+    def __init__(self, filename, data, error, screen_width, screen_height, load_file_callback):
         super(GeometryWidget, self).__init__()
 
         self.filename = filename
@@ -14,13 +14,82 @@ class GeometryWidget(QtGui.QWidget):
         self.errorText = error
         self.screen_width = screen_width
         self.screen_height = screen_height
+        self.load_file_callback = load_file_callback
+
+        palette = QtGui.QPalette()
+        palette.setColor(QtGui.QPalette.Background, QtCore.Qt.white)
+        self.setPalette(palette)
+
 
         self.initUI()
+
+    def openFile(self):
+        print("TODO: open file")
+
+    def openFile(self):
+        self.filename = str(QtGui.QFileDialog.getOpenFileName(self, 'Open File', os.path.expanduser('~')))
+        self.load_file_callback(self.filename)
+
+    def exportSvgFile(self):
+        if not self.data:
+            QMessageBox.about(self, "No Data loaded yet!")
+            return
+
+        svgFilename = str(QtGui.QFileDialog.getSaveFileName(self, 'Export SVG File', os.path.expanduser('~'), "*.svg"))
+
+        drawing = svgwrite.Drawing(svgFilename, profile='tiny', size=('1220mm', '610mm'), viewBox=('0 0 1220 610'))
+        group = drawing.add(drawing.g(id='geometries', stroke='black', fill='none'))
+
+        for elem in self.data:
+            if elem.count() > 0:
+                path = drawing.path()
+
+                first = True
+                for p in elem:
+                    if first:
+                        first = False
+                        path.push(['M', p.x(), p.y()])
+                    else:
+                        path.push(['L', p.x(), p.y()])
+
+                group.add(path)
+        drawing.save()
+
+    def exportDxfFile(self):
+        pass # TODO
+
+    def createMenu(self):
+        openAction = QtGui.QAction(QtGui.QIcon('open.png'), '&Open', self)
+        openAction.setShortcut('Ctrl+O')
+        openAction.setStatusTip('Open file')
+        openAction.triggered.connect(self.openFile)
+
+        exportSvgAction = QtGui.QAction(QtGui.QIcon('export.png'), 'Export &SVG', self)
+        exportSvgAction.setShortcut('Ctrl+S')
+        exportSvgAction.setStatusTip('Export SVG File')
+        exportSvgAction.triggered.connect(self.exportSvgFile)
+
+        exitAction = QtGui.QAction(QtGui.QIcon('exit.png'), '&Exit', self)
+        exitAction.setShortcut('Ctrl+Q')
+        exitAction.setStatusTip('Exit application')
+        exitAction.triggered.connect(QtGui.qApp.quit)
+
+        exportMenu = QtGui.QMenu('Export', self)
+        exportMenu.addAction(exportSvgAction)
+
+        menubar = self.menuBar()
+        fileMenu = menubar.addMenu('&File')
+        fileMenu.addAction(openAction)
+        fileMenu.addMenu(exportMenu)
+        fileMenu.addAction(exitAction)
 
     def initUI(self):
         print("DATA", self.data)
         self.setGeometry(300, 300, self.screen_width, self.screen_height)
         self.setWindowTitle('OpenSCAD2D - ' + os.path.basename(self.filename))
+
+        self.createMenu()
+
         self.show()
 
 

@@ -95,10 +95,12 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
     * [x] ~~auto reload file~~
     * [x] ~~commandline argument~~
     * [ ] main menu 
-        * [ ] load file 
-        * [ ] exit
+        * [x] ~~load file~~
+        * [x] ~~export SVG~~
+        * [x] ~~exit~~
         * [ ] about
         * [ ] help
+        * [ ] export DXF
 
 
 API

@@ -47,9 +47,10 @@ class ArgumentParser:
             if types != None and not (value.type in types):
                 raise Exception("Invalid type (" + value.type + ") of Constant (" + value.value + ") expected " + ", ".join(types))
 
-            if value.type == 'INT':
-                result = int(value.value)
-            #TODO more types
+            if isinstance(value.value, float) or isinstance(value, long) or isinstance(value, bool):
+                result = value.value
+            elif isinstance(value.value, str):
+                result = float(value.value)
             else:
                 raise Exception("Unknown type (" + value.type + ") of Constant (" + value.value + ")")
         elif isinstance(value, cadfileparser.Variable):
