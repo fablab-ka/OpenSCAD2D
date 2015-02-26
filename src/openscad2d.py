@@ -1,6 +1,7 @@
 from __future__ import print_function
 from cadfileparser import *
 import sys
+from PyQt4.QtCore import SIGNAL, SLOT
 from documentwatcher import DocumentWatcher
 from geometrywidget import GeometryWidget
 from svggenerator import SvgGenerator
@@ -49,6 +50,7 @@ class OpenSCAD2D:
 
     def run(self):
         app = QtGui.QApplication(sys.argv)
+        app.connect(app, SIGNAL("lastWindowClosed()"), app, SLOT("quit()"))
         data, error = self.update()
         self.widget = GeometryWidget(self.filename, data, error, self.screen_width, self.screen_height, self.loadFile)
         sys.exit(app.exec_())
@@ -60,8 +62,8 @@ if __name__ == "__main__":
     if len(sys.argv) <= 1:
         #print "no"
         program = OpenSCAD2D("../test/data/rect.fcad")
-        program.run()
     else:
         program = OpenSCAD2D(sys.argv[1])
-        program.run()
+
+    program.run()
 
