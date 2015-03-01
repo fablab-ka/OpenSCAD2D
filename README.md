@@ -19,7 +19,7 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
     * [Install](#Install)
     * [Screenshots](#Screenshots)
     * [TODO](#TODO)
-* [API](wiki/API)
+* [API](https://github.com/fablab-ka/OpenSCAD2D/wiki/API)
 
 #### Dependencies
 
