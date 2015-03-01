@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/fablab-ka/OpenSCAD2D.png?label=ready&title=Ready)](https://waffle.io/fablab-ka/OpenSCAD2D)
 [![Travis CI](https://api.travis-ci.org/fablab-ka/OpenSCAD2D.png)](https://travis-ci.org/fablab-ka/OpenSCAD2D)
 
 OpenSCAD2D
