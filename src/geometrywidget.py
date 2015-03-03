@@ -6,20 +6,22 @@ from PyQt4.QtGui import QMessageBox
 
 
 class GeometryWidget(QtGui.QMainWindow):
-    def __init__(self, filename, data, error, screen_width, screen_height, load_file_callback):
+    def __init__(self, filename, data, log_data, error, screen_width, screen_height, load_file_callback):
         super(QtGui.QMainWindow, self).__init__(None)
 
         self.filename = filename
         self.data = data
-        self.errorText = error
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.load_file_callback = load_file_callback
+        self.isLoading = False
 
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Background, QtCore.Qt.white)
         self.setPalette(palette)
 
+        self.logList = log_data
+        self.current_error = error
 
         self.initUI()
 
@@ -83,11 +85,28 @@ class GeometryWidget(QtGui.QMainWindow):
         fileMenu.addMenu(exportMenu)
         fileMenu.addAction(exitAction)
 
+        viewMenu = menubar.addMenu('&View')
+        helpMenu = menubar.addMenu('&?')
+
     def initUI(self):
         print("DATA", self.data)
         self.setGeometry(300, 300, self.screen_width, self.screen_height)
         self.setWindowTitle('OpenSCAD2D - ' + os.path.basename(self.filename))
 
+        self.centralWidget = QtGui.QWidget()
+        self.setCentralWidget(self.centralWidget)
+
+        dock = QtGui.QDockWidget("Console", self)
+        dock.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea | QtCore.Qt.RightDockWidgetArea | QtCore.Qt.BottomDockWidgetArea)
+        self.consoleWidget = QtGui.QTextBlock()
+
+        log_data = ()
+        if self.logList:
+            log_data = self.logList
+        self.logList = QtGui.QListWidget(dock)
+        self.logList.addItems(log_data)
+        dock.setWidget(self.logList)
+        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock)
         self.createMenu()
 
         self.show()
@@ -102,17 +121,22 @@ class GeometryWidget(QtGui.QMainWindow):
         if self.data:
             for elem in self.data:
                 qp.drawPolyline(elem)
-        if self.errorText:
-            self.drawText(event, qp)
+        if self.isLoading:
+            self.drawLoading(event, qp)
         qp.end()
 
-    def drawText(self, event, qp):
 
+
+    def drawLoading(self, event, qp):
         qp.setPen(QtGui.QColor(168, 34, 3))
         qp.setFont(QtGui.QFont('Decorative', 10))
-        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, self.errorText)
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, "Loading...")
 
-    def setData(self, data, error):
+    def setData(self, data, log_data, error):
         self.data = data
-        self.errorText = error
+        if self.logList:
+            self.logList.addItems(log_data)
+        else:
+            self.logList = log_data
+        self.current_error = error
         self.updateGeometry()
