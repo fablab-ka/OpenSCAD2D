@@ -1,15 +1,17 @@
 from __future__ import print_function
 import pprint
 import math
-from pyparsing import *
+import re
+from pyparsing import lineno, col, line, Suppress, Keyword, oneOf, Literal, infixNotation, opAssoc, Word, alphas, \
+    alphanums, nums, CaselessLiteral, Combine, Optional, Forward, ZeroOrMore, delimitedList, FollowedBy, Group, \
+    OneOrMore, restOfLine, cStyleComment, ParseException
+
 
 # defines debug level
 # 0 - no debug
 # 1 - print parsing results
 # 2 - print parsing results and symbol table
 # 3 - print parsing results only, without executing parse actions (grammar-only testing)
-import re
-
 DEBUG = 2
 
 # #########################################################################################

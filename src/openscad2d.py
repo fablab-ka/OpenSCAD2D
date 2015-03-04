@@ -1,13 +1,13 @@
+# pylint: disable-msg=E0611
 from __future__ import print_function
-from cadfileparser import *
 import sys
-from PyQt4.QtCore import SIGNAL, SLOT
+from PyQt4.QtGui import QApplication
 from documentwatcher import DocumentWatcher
 from geometrywidget import GeometryWidget
+from src.cadfileparser import FcadParser
 from src.printcapturecontext import PrintCaptureContext
 from svggenerator import SvgGenerator
 from geometrygenerator import GeometryGenerator
-from PyQt4 import QtCore, QtGui
 
 
 class OpenSCAD2D:
@@ -51,8 +51,7 @@ class OpenSCAD2D:
         return data, capture_context, error
 
     def run(self):
-        app = QtGui.QApplication(sys.argv)
-        app.connect(app, SIGNAL("lastWindowClosed()"), app, SLOT("quit()"))
+        app = QApplication(sys.argv)
         data, capture_context, error = self.update()
         self.widget = GeometryWidget(self.filename, data, capture_context, error, self.screen_width, self.screen_height, self.loadFile)
         sys.exit(app.exec_())

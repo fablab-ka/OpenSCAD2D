@@ -2,7 +2,7 @@ from __future__ import print_function
 from PyQt4.QtCore import QPointF
 from PyQt4.QtGui import QPolygonF
 from shapely import affinity
-from shapely.geometry import Point, LinearRing, MultiLineString, MultiPoint
+from shapely.geometry import Point, MultiPoint
 from shapely.geometry.base import BaseMultipartGeometry
 import cadfileparser
 
