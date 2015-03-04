@@ -1,7 +1,7 @@
 # pylint: disable-msg=E0611
 from __future__ import print_function
 import sys
-from PyQt4.QtGui import QApplication
+from PyQt4 import QtCore, QtGui
 from documentwatcher import DocumentWatcher
 from geometrywidget import GeometryWidget
 from src.cadfileparser import FcadParser
@@ -51,7 +51,7 @@ class OpenSCAD2D(object):
         return data, capture_context, error
 
     def run(self):
-        app = QApplication(sys.argv)
+        app = QtGui.QApplication(sys.argv)
         data, capture_context, error = self.update()
         self.widget = GeometryWidget(self.filename, data, capture_context, error, self.screen_width, self.screen_height, self.loadFile)
         sys.exit(app.exec_())

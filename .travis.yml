@@ -24,9 +24,13 @@ before_script:
 install:
   - "pip install -r requirements.txt --use-mirrors"
   - "pip install nose pylint"
-script:  "python test.py && pylint --errors-only src\openscad2d.py"
+script:  "python test.py && pylint --errors-only src/openscad2d.py"
 after_success:
   coveralls
 notifications:
   email:
     - sven@fablab-karlsruhe.de
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/1cc3163a67a5bcdc1aca
+    on_success: change  # options: [always|never|change] default: always
