@@ -6,7 +6,7 @@ from shapely.geometry import Point, MultiPoint
 from shapely.geometry.base import BaseMultipartGeometry
 import cadfileparser
 
-class ArgumentParser:
+class ArgumentParser(object):
     def __init__(self, primitive_name, argument_definitions):
         self.primitive_name = primitive_name
         self.argument_definitions = argument_definitions
@@ -44,7 +44,7 @@ class ArgumentParser:
         elif isinstance(value, cadfileparser.BoolOperand):
             result = value.value
         elif isinstance(value, cadfileparser.Constant):
-            if types != None and not (value.type in types):
+            if types is not None and not (value.type in types):
                 raise Exception("Invalid type (" + value.type + ") of Constant (" + value.value + ") expected " + ", ".join(types))
 
             if isinstance(value.value, float) or isinstance(value, long) or isinstance(value, bool):
@@ -82,7 +82,7 @@ class ArgumentParser:
             assignments = self.extract_assignments(arguments)
 
             for a in assignments:
-                if not a.identifier in self.arguments_by_identifier.keys():
+                if a.identifier not in self.arguments_by_identifier.keys():
                     raise Exception("Unknown argument '" + a.identifier + "' for " + self.primitive_name + "." + self.create_docu_clue("Circle"))
 
                 definition = self.arguments_by_identifier[a.identifier]
@@ -97,7 +97,7 @@ class ArgumentParser:
 
         return result
 
-class GeometryGenerator:
+class GeometryGenerator(object):
     def __init__(self, screen_width, screen_height):
         self.default_resolution = 64
 
@@ -310,10 +310,10 @@ class GeometryGenerator:
 
         return result
 
-    def extract_primitives(self, list):
+    def extract_primitives(self, expression_list):
         result = []
 
-        for expression in list:
+        for expression in expression_list:
             if isinstance(expression, cadfileparser.Statement) and expression.type == cadfileparser.StatementType.Primitive:
                 result.append(self.create_primitive(expression))
             elif isinstance(expression, cadfileparser.Scope):
