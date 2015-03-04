@@ -23,6 +23,8 @@ before_script:
   - "sh -e /etc/init.d/xvfb start"
 install: "pip install -r requirements.txt --use-mirrors"
 script:  python test.py
+after_success:
+  coveralls
 notifications:
   email:
     - sven@fablab-karlsruhe.de
