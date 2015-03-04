@@ -1,0 +1,7 @@
+a = 1;
+b = 0.5;
+c = true;
+d = 1 + 1;
+e = a;
+//f = 'test';
+g = false;

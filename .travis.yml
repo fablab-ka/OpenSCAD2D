@@ -21,8 +21,10 @@ before_install:
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
-install: "pip install -r requirements.txt --use-mirrors"
-script:  python test.py
+install:
+  - "pip install -r requirements.txt --use-mirrors"
+  - "pip install nose pylint"
+script:  "python test.py && pylint --errors-only src\openscad2d.py"
 after_success:
   coveralls
 notifications:

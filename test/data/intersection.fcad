@@ -1,4 +1,4 @@
-union() {
+intersection() {
 	translate(10, 10)
     rect(100, 100);
 

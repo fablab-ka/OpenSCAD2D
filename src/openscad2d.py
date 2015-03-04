@@ -1,41 +1,59 @@
+# pylint: disable-msg=E0611
 from __future__ import print_function
-from cadfileparser import *
 import sys
+from PyQt4.QtGui import QApplication
 from documentwatcher import DocumentWatcher
 from geometrywidget import GeometryWidget
+from src.cadfileparser import FcadParser
+from src.printcapturecontext import PrintCaptureContext
 from svggenerator import SvgGenerator
 from geometrygenerator import GeometryGenerator
-from PyQt4 import QtCore, QtGui
 
 
-class OpenSCAD2D:
+class OpenSCAD2D(object):
     def __init__(self, filename):
-        self.filename = filename
 
         self.screen_width, self.screen_height = 800.0, 600.0
 
-        self.parser = FcadParser(filename)
         self.file_generator = SvgGenerator()
         self.geometry_generator = GeometryGenerator(self.screen_width, self.screen_height)
 
-        self.watcher = DocumentWatcher(filename, self.on_file_change)
+        self.widget = None
+        self.watcher = None
+
+        self.loadFile(filename)
+
+    def loadFile(self, filename):
+        self.filename = filename
+
+        if self.watcher:
+            self.watcher.stop_monitor()
+        self.watcher = DocumentWatcher(self.filename, self.on_file_change)
         self.watcher.monitor()
 
-        self.widget = None
+        self.parser = FcadParser(filename)
 
     def update(self):
-        self.parser = FcadParser(self.filename)
-        ast, error = self.parser.parse()
-        print("AST:", ast, ", Error:", error)
-        data = self.geometry_generator.generate(ast)
+        with PrintCaptureContext() as capture_context:
+            self.parser = FcadParser(self.filename)
+            ast, error = self.parser.parse()
+            print("AST:", ast, ", Error:", error)
+
+            if not error:
+                data = self.geometry_generator.generate(ast)
+            else:
+                raise Exception(error)
+
+
         if self.widget:
-            self.widget.setData(data, error)
-        return data, error
+            self.widget.setData(data, capture_context, error)
+
+        return data, capture_context, error
 
     def run(self):
-        app = QtGui.QApplication(sys.argv)
-        data, error = self.update()
-        self.widget = GeometryWidget(self.filename, data, error, self.screen_width, self.screen_height)
+        app = QApplication(sys.argv)
+        data, capture_context, error = self.update()
+        self.widget = GeometryWidget(self.filename, data, capture_context, error, self.screen_width, self.screen_height, self.loadFile)
         sys.exit(app.exec_())
 
     def on_file_change(self):
@@ -44,9 +62,9 @@ class OpenSCAD2D:
 if __name__ == "__main__":
     if len(sys.argv) <= 1:
         #print "no"
-        program = OpenSCAD2D("../test/data/translate.fcad")
-        program.run()
+        program = OpenSCAD2D("../test/data/rect.fcad")
     else:
         program = OpenSCAD2D(sys.argv[1])
-        program.run()
+
+    program.run()
 

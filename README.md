@@ -1,10 +1,16 @@
+[![GitHub version](https://badge.fury.io/gh/fablab-ka%2Fopenscad2d.svg)](http://badge.fury.io/gh/fablab-ka%2Fopenscad2d)
+[![Stories in Ready](https://badge.waffle.io/fablab-ka/OpenSCAD2D.png?label=ready&title=Ready)](https://waffle.io/fablab-ka/OpenSCAD2D)
 [![Travis CI](https://api.travis-ci.org/fablab-ka/OpenSCAD2D.png)](https://travis-ci.org/fablab-ka/OpenSCAD2D)
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/fablab-ka/openscad2d/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+[![Code Health](https://landscape.io/github/fablab-ka/OpenSCAD2D/master/landscape.svg?style=flat)](https://landscape.io/github/fablab-ka/OpenSCAD2D/master)
+[![Coverage Status](https://coveralls.io/repos/fablab-ka/OpenSCAD2D/badge.svg)](https://coveralls.io/r/fablab-ka/OpenSCAD2D)
+[![Documentation Status](https://readthedocs.org/projects/openscad2d/badge/?version=latest)](https://readthedocs.org/projects/openscad2d/?badge=latest)
+[![Dependency Status](https://gemnasium.com/fablab-ka/OpenSCAD2D.svg)](https://gemnasium.com/fablab-ka/OpenSCAD2D)
 
 OpenSCAD2D
 ==========
 
-[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=fablab&url=<a href="https://flattr.com/submit/auto?user_id=fablab&url=https%3A%2F%2Fgithub.com%2Ffablab-ka%2FOpenSCAD2D" target="_blank"><img src="//button.flattr.com/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a>&title=OpenSCAD2D&language=&tags=github&category=software)
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=fablab&url=https%3A%2F%2Fgithub.com%2Ffablab-ka%2FOpenSCAD2D&title=OpenSCAD2D&language=&tags=github&category=software)
+
 
 
 OpenSCAD2D is a software for creating solid 2D CAD objects.
@@ -15,18 +21,10 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
 
 * General Information
     * [Dependencies](#Dependencies)
+    * [Install](#Install)
     * [Screenshots](#Screenshots)
     * [TODO](#TODO)
-* [API](#API)
-    * [Primitives](#Primitives)
-        * [Circle](#Circle)
-        * [Rectangle](#Rectangle)
-        * [Path](#Path)
-    * [Modifiers](#Modifiers)
-        * [Translate](#Translate)
-        * [Rotate](#Rotate)
-        * [Scale](#Scale)
-        * [Hull](#Hull)
+* [API](https://github.com/fablab-ka/OpenSCAD2D/wiki/API)
 
 #### Dependencies
 
@@ -35,6 +33,14 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
 * [pyqt4](http://www.riverbankcomputing.co.uk/software/pyqt/intro) ([Installer](http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11.3/PyQt4-4.11.3-gpl-Py2.7-Qt4.8.6-x32.exe))
 * [pyparsing](http://pyparsing.wikispaces.com/Download+and+Installation)
 * [shapely](https://pypi.python.org/pypi/Shapely#downloads)
+
+### Install
+
+## Ubuntu
+
+* sudo apt-get install python2.7 python-shapely python-pyparsing
+* sudo pip install -r requirements.txt --use-mirrors
+* sudo ./install_pyqt4.sh
 
 ### Screenshots
 
@@ -45,13 +51,14 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
 * [ ] Language
     * [x] ~~Single Line Comments~~
     * [x] ~~Multi Line Comments~~
-    * [ ] Basic Calculations
+    * [x] ~~Basic Calculations~~
     * [ ] Variable assignment & lookup
     * [ ] Math functions (cos sin tan acos asin atan atan2 abs ceil concat cross exp floor ln len let log lookup max min norm pow rands round sign sqrt)
+    * [ ] print statement
     * [ ] Datatypes
         * [x] ~~integer~~
         * [x] ~~float~~
-        * [ ] boolean
+        * [x] ~~boolean~~
         * [ ] string
     * [ ] Primitives
         * [x] ~~circle~~
@@ -68,12 +75,12 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
         * [ ] rotate
         * [ ] scale
         * [ ] hull
-        * [ ] union
-        * [ ] difference
-        * [ ] intersection
-        * [ ] assign
+        * [x] ~~union~~
+        * [x] ~~difference~~
+        * [x] ~~intersection~~
         * [ ] combine
         * [ ] knapsack
+        * [ ] assign
     * [ ] Modules
         * [ ] module definition
         * [ ] module call
@@ -85,87 +92,13 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
 * [ ] Application Frame
     * [x] ~~auto reload file~~
     * [x] ~~commandline argument~~
+    * [ ] Sexy UI
     * [ ] main menu 
-        * [ ] load file 
-        * [ ] exit
+        * [x] ~~load file~~
+        * [x] ~~export SVG~~
+        * [x] ~~exit~~
         * [ ] about
         * [ ] help
+        * [ ] export DXF
 
-
-API
-===
-
-The following documentation describes the statements and modifiers that are possible to use with OpenScad2D.
-
-## Primitives
-
-### Circle
-
-```OpenSCAD
-circle( <radius>, [<resolution>] );
-circle( r=<radius>, [$fn=<resolution>] );
-circle( radius=<radius>, [$fn=<resolution>] );
-```
-
-### Rectangle
-
-```OpenSCAD
-rect( <width>, <height>] );
-rect( w=<width>, h=<height>] );
-rect( width=<width>, height=<height>] );
-```
-
-### Path
-
-Not yet implemented!
-
-```OpenSCAD
-path( <x1>, <y1>, <x2>, <y2>, ... );
-```
-
-
-## Modifiers
-
-Modifiers can be written in the form:
-
-```OpenSCAD
-translate(5, 10)
-rect(10, 10);
-```
-
-or as a modifier scope
-
-```OpenSCAD
-translate(5, 10) {
-  rect(10, 10);
-
-  circle(30);
-}
-```
-
-### Translate
-
-```OpenSCAD
-translate( <x>, <y> );
-translate( x=<x>, y=y );
-```
-
-### Rotate
-
-```OpenSCAD
-rotate( <angle>, [<origin x>], [<origin y>], [<use radian>] );
-rotate( a=<angle>, [x=<origin x>], [y=<origin y>], [rad=<use radian> );
-rotate( angle=<angle>, [xorigin=<origin x>], [yorigin=<origin y>], [use_radian=<use radian> );
-```
-
-### Scale
-
-```OpenSCAD
-scale( <x>, <y> );
-scale( x=<x>, y=y );
-```
-
-### Hull
-
-TBD
 
