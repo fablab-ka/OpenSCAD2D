@@ -24,7 +24,7 @@ before_script:
 install:
   - "pip install -r requirements.txt --use-mirrors"
   - "pip install nose pylint"
-script:  "python test.py && pylint --errors-only src\openscad2d.py"
+script:  "python test.py && pylint --errors-only src/openscad2d.py"
 after_success:
   coveralls
 notifications:
