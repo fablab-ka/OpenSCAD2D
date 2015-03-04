@@ -2,7 +2,7 @@
 [![Travis CI](https://api.travis-ci.org/fablab-ka/OpenSCAD2D.png)](https://travis-ci.org/fablab-ka/OpenSCAD2D)
 [![Code Health](https://landscape.io/github/fablab-ka/OpenSCAD2D/master/landscape.svg?style=flat)](https://landscape.io/github/fablab-ka/OpenSCAD2D/master)
 [![Coverage Status](https://coveralls.io/repos/fablab-ka/OpenSCAD2D/badge.svg)](https://coveralls.io/r/fablab-ka/OpenSCAD2D)
-[![Documentation](https://readthedocs.org/projects/openscad2d/?badge=latest)](https://readthedocs.org/projects/openscad2d/)
+[![Documentation Status](https://readthedocs.org/projects/openscad2d/badge/?version=latest)](https://readthedocs.org/projects/openscad2d/?badge=latest)
 
 OpenSCAD2D
 ==========
