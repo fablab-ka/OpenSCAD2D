@@ -1,3 +1,4 @@
+[![GitHub version](https://badge.fury.io/gh/fablab-ka%2Fopenscad2d.svg)](http://badge.fury.io/gh/fablab-ka%2Fopenscad2d)
 [![Stories in Ready](https://badge.waffle.io/fablab-ka/OpenSCAD2D.png?label=ready&title=Ready)](https://waffle.io/fablab-ka/OpenSCAD2D)
 [![Travis CI](https://api.travis-ci.org/fablab-ka/OpenSCAD2D.png)](https://travis-ci.org/fablab-ka/OpenSCAD2D)
 [![Code Health](https://landscape.io/github/fablab-ka/OpenSCAD2D/master/landscape.svg?style=flat)](https://landscape.io/github/fablab-ka/OpenSCAD2D/master)
