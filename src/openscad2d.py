@@ -10,7 +10,7 @@ from svggenerator import SvgGenerator
 from geometrygenerator import GeometryGenerator
 
 
-class OpenSCAD2D:
+class OpenSCAD2D(object):
     def __init__(self, filename):
 
         self.screen_width, self.screen_height = 800.0, 600.0
