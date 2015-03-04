@@ -18,13 +18,13 @@ DEBUG = 2
 ##########################################################################################
 
 
-class KINDS:
+class KINDS(object):
     NO_KIND = "NO_KIND"
     GLOBAL_VAR = "GLOBAL_VAR"
     MODULE = "MODULE"
     PARAMETER = "PARAMETER"
 
-class StatementType:
+class StatementType(object):
     Primitive = "primitive"
     Modifier = "modifier"
 
@@ -73,7 +73,7 @@ class SemanticException(Exception):
         self._message = message
         self.location = exshared.location
         self.print_location = print_location
-        if exshared.location != None:
+        if exshared.location is not None:
             self.line = lineno(exshared.location, exshared.text)
             self.col = col(exshared.location, exshared.text)
             self.text = line(exshared.location, exshared.text)
@@ -91,10 +91,10 @@ class SemanticException(Exception):
     def __str__(self):
         """String representation of the semantic error"""
         msg = "Error"
-        if self.print_location and (self.line != None):
+        if self.print_location and self.line is not None:
             msg += " at line %d, col %d" % (self.line, self.col)
         msg += ": %s" % self.message
-        if self.print_location and (self.line != None):
+        if self.print_location and self.line is not None:
             msg += "\n%s" % self.text
         return msg
 
@@ -118,7 +118,7 @@ class SymbolTableEntry(object):
         self.parameters = []
 
 
-class SymbolTable:
+class SymbolTable(object):
     def __init__(self):
         """Initialization of the symbol table"""
         self.table = []
@@ -175,7 +175,7 @@ class SymbolTable:
         return self.insert_id(name, KINDS.GLOBAL_VAR, None, value)
 
     def insert_parameter(self, name, module):
-        index = self.insert_id(name, KINDS.PARAMETER, module)
+        index = self.insert_id(name, KINDS.PARAMETER, module, None)
         for entry in self.table:
             if entry.name == module and entry.kind == KINDS.MODULE:
                 entry.parameters.append(name)
@@ -183,7 +183,7 @@ class SymbolTable:
         return index
 
     def insert_module(self, name):
-        index = self.insert_id(name, KINDS.MODULE)
+        index = self.insert_id(name, KINDS.MODULE, None)
         return index
 
     def insert_id(self, name, kind, parent, value):
@@ -221,7 +221,7 @@ class SymbolTable:
 ##########################################################################################
 ##########################################################################################
 
-class Scope:
+class Scope(object):
     def __init__(self, name, arguments, children, modifiers):
         self.name = name
         self.arguments = arguments
@@ -231,9 +231,9 @@ class Scope:
     def __repr__(self):
         return "[SCOPE: " + self.name + " - " + repr(self.arguments) + " - " + repr(self.children) + " - " + repr(self.modifiers) + "]"
 
-class Statement:
-    def __init__(self, type, name, arguments, modifiers=None):
-        self.type = type
+class Statement(object):
+    def __init__(self, statement_type, name, arguments, modifiers=None):
+        self.type = statement_type
         self.name = name
         self.arguments = arguments
         self.modifiers = modifiers
@@ -241,7 +241,7 @@ class Statement:
     def __repr__(self):
         return "[STATEMENT: " + self.type + " - " + self.name + " - " + repr(self.arguments) + " - " + repr(self.modifiers) + "]"
 
-class Constant:
+class Constant(object):
     def __init__(self, data):
         self.value = data[0]
         #self.type = data[1]
@@ -249,17 +249,17 @@ class Constant:
     def __repr__(self):
         return "[CONSTANT: " + str(self.value) + "]"# (" + self.type + ")]"
 
-class Variable:
+class Variable(object):
     def __init__(self, identifier):
         self.identifier = identifier
 
-class Assignment:
+class Assignment(object):
     def __init__(self, identifier, value):
         self.identifier = identifier
         self.value = value
 
     #def __repr__(self):
-     #   return "[ASSIGNMENT: " + self.identifier + " = " + self.value + "]"
+        #return "[ASSIGNMENT: " + self.identifier + " = " + self.value + "]"
 
 class BoolOperand(object):
     def __init__(self,t):
@@ -306,7 +306,7 @@ class BoolNot(object):
 ##########################################################################################
 
 
-class FcadParser:
+class FcadParser(object):
     def __init__(self, filename):
         self.filename = filename
         self.program = None
@@ -446,8 +446,9 @@ class FcadParser:
         return stuff
 
     def lookup_id_action(self, text="", loc=-1, var=None):
-        varname = text if not var else var.name
         """Code executed after recognising an identificator in expression"""
+        
+        varname = text if not var else var.name
         exshared.setpos(loc, text)
         if DEBUG > 0:
             print("EXP_VAR:", var)
