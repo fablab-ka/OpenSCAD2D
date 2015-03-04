@@ -9,7 +9,7 @@ class DocumentWatcher(pywatch.Watcher):
         self.callback = callback
 
     def execute(self):
-        if not self.callback is None:
+        if self.callback is not None:
             self.callback()
         else:
             print("[error] callback not defined")
