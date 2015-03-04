@@ -9,6 +9,8 @@
 OpenSCAD2D
 ==========
 
+[![Join the chat at https://gitter.im/fablab-ka/OpenSCAD2D](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fablab-ka/OpenSCAD2D?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=fablab&url=https%3A%2F%2Fgithub.com%2Ffablab-ka%2FOpenSCAD2D&title=OpenSCAD2D&language=&tags=github&category=software)
 
 
