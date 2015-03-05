@@ -2,7 +2,7 @@ from __future__ import print_function
 from PyQt4.QtCore import QPointF
 from PyQt4.QtGui import QPolygonF
 from shapely import affinity
-from shapely.geometry import Point, MultiPoint
+from shapely.geometry import Point, LinearRing, MultiLineString, MultiPoint, Polygon
 from shapely.geometry.base import BaseMultipartGeometry
 import cadfileparser
 
@@ -335,10 +335,15 @@ class GeometryGenerator(object):
             root_element = primitives[0]
 
         result = []
-        if isinstance(root_element, BaseMultipartGeometry):
-            for geom in root_element.geoms:
-                result.append(QPolygonF(map(lambda c: QPointF(c[0], c[1]), list(geom.coords))))
-        else:
-            result = [QPolygonF(map(lambda c: QPointF(c[0], c[1]), list(root_element.exterior.coords)))]
+        if root_element:
+            if isinstance(root_element, BaseMultipartGeometry):
+                for geom in root_element.geoms:
+                    print(type(geom))
+                    if isinstance(geom, Polygon):
+                        result.append(QPolygonF(map(lambda c: QPointF(c[0], c[1]), list(geom.exterior.coords))))
+                    else:
+                        result.append(QPolygonF(map(lambda c: QPointF(c[0], c[1]), list(geom.coords))))
+            else:
+                result = [QPolygonF(map(lambda c: QPointF(c[0], c[1]), list(root_element.exterior.coords)))]
 
         return result

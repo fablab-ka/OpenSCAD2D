@@ -26,11 +26,9 @@ class GeometryWidget(QtGui.QMainWindow):
         self.initUI()
 
     def openFile(self):
-        print("TODO: open file")
-
-    def openFile(self):
         self.filename = str(QtGui.QFileDialog.getOpenFileName(self, 'Open File', os.path.expanduser('~')))
         self.load_file_callback(self.filename)
+        self.setWindowTitle('OpenSCAD2D - ' + os.path.basename(self.filename))
 
     def exportSvgFile(self):
         if not self.data:
@@ -89,7 +87,6 @@ class GeometryWidget(QtGui.QMainWindow):
         helpMenu = menubar.addMenu('&?')
 
     def initUI(self):
-        print("DATA", self.data)
         self.setGeometry(300, 300, self.screen_width, self.screen_height)
         self.setWindowTitle('OpenSCAD2D - ' + os.path.basename(self.filename))
 

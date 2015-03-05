@@ -10,6 +10,7 @@ from svggenerator import SvgGenerator
 from geometrygenerator import GeometryGenerator
 
 
+
 class OpenSCAD2D(object):
     def __init__(self, filename):
 
@@ -33,6 +34,8 @@ class OpenSCAD2D(object):
 
         self.parser = FcadParser(filename)
 
+        self.update()
+
     def update(self):
         with PrintCaptureContext() as capture_context:
             self.parser = FcadParser(self.filename)
@@ -52,8 +55,12 @@ class OpenSCAD2D(object):
 
     def run(self):
         app = QtGui.QApplication(sys.argv)
+        app.setApplicationName("OpenSCAD2D")
+        app.setQuitOnLastWindowClosed(True)
+        app.setWindowIcon(QIcon('../logo.png'))
         data, capture_context, error = self.update()
         self.widget = GeometryWidget(self.filename, data, capture_context, error, self.screen_width, self.screen_height, self.loadFile)
+
         sys.exit(app.exec_())
 
     def on_file_change(self):
