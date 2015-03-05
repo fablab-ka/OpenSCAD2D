@@ -29,3 +29,7 @@ after_success:
 notifications:
   email:
     - sven@fablab-karlsruhe.de
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/1cc3163a67a5bcdc1aca
+    on_success: change  # options: [always|never|change] default: always
