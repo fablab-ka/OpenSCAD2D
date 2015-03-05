@@ -23,10 +23,9 @@ before_script:
   - "sh -e /etc/init.d/xvfb start"
 install:
   - "pip install -r requirements.txt --use-mirrors"
-  - "pip install nose pylint"
-script:  "python test.py && pylint --errors-only src\openscad2d.py"
+script:  "python test.py"
 after_success:
-  coveralls
+  - coveralls
 notifications:
   email:
     - sven@fablab-karlsruhe.de
