@@ -5,7 +5,7 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QMessageBox
 
 
-class GeometryWidget(QtGui.QMainWindow):
+class GeometryWidget(QtGui.QMainWindow, object):
     def __init__(self, filename, data, log_data, error, screen_width, screen_height, load_file_callback):
         super(QtGui.QMainWindow, self).__init__(None)
 
