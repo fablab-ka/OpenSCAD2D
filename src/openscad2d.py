@@ -57,7 +57,7 @@ class OpenSCAD2D(object):
         app = QtGui.QApplication(sys.argv)
         app.setApplicationName("OpenSCAD2D")
         app.setQuitOnLastWindowClosed(True)
-        app.setWindowIcon(QIcon('../logo.png'))
+        app.setWindowIcon(QtGui.QIcon('../logo.png'))
         data, capture_context, error = self.update()
         self.widget = GeometryWidget(self.filename, data, capture_context, error, self.screen_width, self.screen_height, self.loadFile)
 
