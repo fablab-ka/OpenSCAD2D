@@ -40,7 +40,7 @@ This Software is inspired by the ingenious 3D CAD Modeller [OpenSCAD](http://www
 
 ## Ubuntu
 
-* sudo apt-get install python2.7 python-shapely python-pyparsing
+* sudo apt-get install python2.7 python2.7-dev python-shapely python-pyparsing
 * sudo pip install -r requirements.txt --use-mirrors
 * sudo ./install_pyqt4.sh
 
