@@ -4,7 +4,7 @@ python:
   - "2.7"
 before_install:
   - cd ..
-  - "./install_pyqt4.sh"
+  - "./OpenSCAD2D/install_pyqt4.sh"
   - cd OpenSCAD2D
 before_script:
   - "export DISPLAY=:99.0"
