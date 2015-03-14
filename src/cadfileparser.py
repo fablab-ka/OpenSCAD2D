@@ -221,6 +221,14 @@ class SymbolTable(object):
 ##########################################################################################
 ##########################################################################################
 
+class Vector(object):
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+
+    def __repr__(self):
+        return "[VECTOR: " + repr(self.start) + " - " + repr(self.end) + "]"
+
 class Scope(object):
     def __init__(self, name, arguments, children, modifiers):
         self.name = name
@@ -353,11 +361,12 @@ class FcadParser(object):
 
     # noinspection PyPep8Naming,PyShadowingBuiltins
     def init_grammar(self):
-        LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA, EQUAL = map(Suppress, "()[]{};,=")
+        LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA, EQUAL, COLON = map(Suppress, "()[]{};,=:")
 
         USE = Keyword("use")
         MODULE = Keyword("module")
         IF = Keyword("if")
+        FOR = Keyword("for")
         ELSE = Keyword("else")
         TRUE = Keyword("true")
         FALSE = Keyword("false")
@@ -411,11 +420,12 @@ class FcadParser(object):
                        LPAR + Optional(arguments)("args") + RPAR)
         module_call_statement = (module_call + SEMI).setParseAction(self.module_call_action)
 
-        primitive_argument_assignment_value = (constant |
-                                               calculation |
-                                               boolExpr |
-                                               identifier("name").setParseAction(self.lookup_id_action) |
-                                               Group(Suppress("(") + calculation + Suppress(")")) )
+        numerical_value = ( constant |
+                            calculation |
+                            identifier("name").setParseAction(self.lookup_id_action) |
+                            Group(Suppress("(") + calculation + Suppress(")")) )
+
+        primitive_argument_assignment_value = (numerical_value | boolExpr)
 
         primitive_argument_assignment = (identifier("variable") + EQUAL + primitive_argument_assignment_value).setParseAction(self.primitive_argument_assignment_action)
         primitive_argument = (primitive_argument_assignment | expression("exp"))
@@ -424,7 +434,7 @@ class FcadParser(object):
         modifier = ( (modifier_name + FollowedBy("(")).setParseAction(self.primitive_modifier_prepare_action) +
                               LPAR + Optional(primitive_argument_list)("args") + RPAR).setParseAction(self.primitive_modifier_action)
 
-        primitive_call_statement = ( ZeroOrMore(modifier) + (identifier("name") + FollowedBy("(")).setParseAction(self.primitive_call_prepare_action) +
+        primitive_call_statement = ( ZeroOrMore(modifier)("modifiers") + (identifier("name") + FollowedBy("(")).setParseAction(self.primitive_call_prepare_action) +
                                     LPAR + Optional(primitive_argument_list)("args") + RPAR + SEMI).setParseAction(self.primitive_call_action)
 
         expression << (boolExpr | calculation).setParseAction(self.debug_action)#.setParseAction(lambda x: x[0])
@@ -436,7 +446,12 @@ class FcadParser(object):
         modifier_scope = ( (ZeroOrMore(modifier)("modifiers") + identifier("name") + LPAR + Optional(primitive_argument_list)("args") + RPAR + FollowedBy("{")).setParseAction(self.modifier_scope_prepare_action) +
                             LBRACE + ZeroOrMore(statement) + RBRACE ).setParseAction(self.modifier_scope_action)
 
-        statement << ( primitive_call_statement | module_call_statement | Suppress(assign_statement) | modifier_scope )
+        vector = (LBRACK + numerical_value + COLON + numerical_value + RBRACK).setParseAction(self.vector_action)
+
+        for_loop_scope = ( ZeroOrMore(modifier)("modifiers") + ( FOR + LPAR + identifier("index") + EQUAL + vector("range") + RPAR + FollowedBy("{") ).setParseAction(self.begin_for_loop_scope) +
+                         LBRACE + ZeroOrMore(statement)("body") + RBRACE ).setParseAction(self.for_loop_scope_action)
+
+        statement << ( for_loop_scope | primitive_call_statement | module_call_statement | Suppress(assign_statement) | modifier_scope )
 
         body = OneOrMore(statement)
 
@@ -444,6 +459,34 @@ class FcadParser(object):
 
     def debug_action(self, text, loc, stuff):
         return stuff
+
+    def vector_action(self, text, loc, tokens):
+        if DEBUG > 0:
+            print("VECTOR:", tokens)
+            if DEBUG == 2: self.symtab.display()
+            if DEBUG > 2: return
+        return Vector(tokens[0], tokens[1])
+
+    def begin_for_loop_scope(self, text, loc, tokens):
+        print("begin_for_loop_scope", repr(tokens))
+
+        #self.symtab.insert_global_var(tokens.index, tokens.range)
+
+        if DEBUG > 0:
+            print("VECTOR:", tokens)
+            if DEBUG == 2: self.symtab.display()
+            if DEBUG > 2: return
+
+        return [tokens.index, tokens.range]
+
+    def for_loop_scope_action(self, text, loc, tokens):
+        print("for_loop_scope_action", tokens)
+
+        #result = []
+        #for i in range(loop_range.start, loop_range.end):
+        #   pass
+
+        #return result
 
     def lookup_id_action(self, text="", loc=-1, var=None):
         """Code executed after recognising an identificator in expression"""

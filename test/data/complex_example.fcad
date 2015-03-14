@@ -7,7 +7,7 @@ number_of_cols = 3;
 hole_radius = 10;
 hole_spacing = 20;
 
-/*difference() {
+difference() {
 	rect(plate_width, plate_height);
 
 	for (y = [0:number_of_rows]) {
@@ -17,4 +17,3 @@ hole_spacing = 20;
 		}
 	}
 }
-*/

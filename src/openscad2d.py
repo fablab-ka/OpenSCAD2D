@@ -69,7 +69,7 @@ class OpenSCAD2D(object):
 if __name__ == "__main__":
     if len(sys.argv) <= 1:
         #print "no"
-        program = OpenSCAD2D("../test/data/rect.fcad")
+        program = OpenSCAD2D("../test/data/complex_example.fcad")
     else:
         program = OpenSCAD2D(sys.argv[1])
 
