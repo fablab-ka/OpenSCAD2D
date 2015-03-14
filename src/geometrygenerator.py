@@ -115,7 +115,7 @@ class GeometryGenerator(object):
             "optional": False,
             "index": 0
         },{
-            "names": ["fn$", "resolution"],
+            "names": ["$fn", "fn$", "resolution"],
             "types": ["INT"],
             "default": self.default_resolution,
             "optional": True,
@@ -284,7 +284,7 @@ class GeometryGenerator(object):
         for assignment in scope.arguments:
             self.assignment_stack.append(assignment)
 
-    def resolve_temporary_assignments(self, scope):
+    def resolve_temporary_assignments(self):
         self.assignment_stack.pop()
 
     def being_scope(self, scope):
