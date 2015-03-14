@@ -21,8 +21,7 @@ class TestFcadParser(unittest.TestCase):
         self.assertTrue(result[0].name == 'circle', "unexpected token name '" + result[0].name + "'")
         self.assertTrue(isinstance(result[0].arguments[0], Assignment), "unexpected argument type")
         self.assertTrue(result[0].arguments[0].identifier == 'r', "unexpected argument '" + result[0].arguments[0].identifier + "'")
-        self.assertTrue(isinstance(result[0].arguments[0].value, Constant), "unexpected argument value type")
-        self.assertTrue(result[0].arguments[0].value.value == '10', "unexpected argument value value '" + str(result[0].arguments[0].value.value) + "'")
+        self.assertTrue(result[0].arguments[0].value == 10, "unexpected argument value '" + str(result[0].arguments[0].value) + "'")
 
         self.assertTrue(result[1].type == StatementType.Primitive, "unexpected token type '" + result[1].type + "'")
         self.assertTrue(result[1].name == 'circle', "unexpected token name '" + result[1].name + "'")
