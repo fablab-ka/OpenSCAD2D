@@ -1,10 +1,11 @@
 from __future__ import print_function
+import copy
 import pprint
 import math
 import re
 from pyparsing import lineno, col, line, Suppress, Keyword, oneOf, Literal, infixNotation, opAssoc, Word, alphas, \
     alphanums, nums, CaselessLiteral, Combine, Optional, Forward, ZeroOrMore, delimitedList, FollowedBy, Group, \
-    OneOrMore, restOfLine, cStyleComment, ParseException
+    OneOrMore, restOfLine, cStyleComment, ParseException, traceParseAction
 
 
 # defines debug level
@@ -12,6 +13,8 @@ from pyparsing import lineno, col, line, Suppress, Keyword, oneOf, Literal, infi
 # 1 - print parsing results
 # 2 - print parsing results and symbol table
 # 3 - print parsing results only, without executing parse actions (grammar-only testing)
+import sys
+
 DEBUG = 2
 
 # #########################################################################################
@@ -222,12 +225,12 @@ class SymbolTable(object):
 ##########################################################################################
 
 class Vector(object):
-    def __init__(self, start, end):
-        self.start = start
-        self.end = end
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 
     def __repr__(self):
-        return "[VECTOR: " + repr(self.start) + " - " + repr(self.end) + "]"
+        return "{VECTOR: " + repr(self.x) + " : " + repr(self.y) + "}"
 
 class Scope(object):
     def __init__(self, name, arguments, children, modifiers):
@@ -237,7 +240,7 @@ class Scope(object):
         self.modifiers = modifiers
 
     def __repr__(self):
-        return "[SCOPE: " + self.name + " - " + repr(self.arguments) + " - " + repr(self.children) + " - " + repr(self.modifiers) + "]"
+        return "{SCOPE: " + self.name + " - " + repr(self.arguments) + " - " + repr(self.children) + " - " + repr(self.modifiers) + "}"
 
 class Statement(object):
     def __init__(self, statement_type, name, arguments, modifiers=None):
@@ -247,7 +250,7 @@ class Statement(object):
         self.modifiers = modifiers
 
     def __repr__(self):
-        return "[STATEMENT: " + self.type + " - " + self.name + " - " + repr(self.arguments) + " - " + repr(self.modifiers) + "]"
+        return "{STATEMENT: " + self.type + " - " + self.name + " - " + repr(self.arguments) + " - " + repr(self.modifiers) + "}"
 
 class Constant(object):
     def __init__(self, data):
@@ -255,7 +258,7 @@ class Constant(object):
         #self.type = data[1]
 
     def __repr__(self):
-        return "[CONSTANT: " + str(self.value) + "]"# (" + self.type + ")]"
+        return "{CONSTANT: " + str(self.value) + "}"# (" + self.type + ")}"
 
 class Variable(object):
     def __init__(self, identifier):
@@ -266,8 +269,8 @@ class Assignment(object):
         self.identifier = identifier
         self.value = value
 
-    #def __repr__(self):
-        #return "[ASSIGNMENT: " + self.identifier + " = " + self.value + "]"
+    def __repr__(self):
+        return "{ASSIGNMENT: " + repr(self.identifier) + " = " + repr(self.value) + "}"
 
 class BoolOperand(object):
     def __init__(self,t):
@@ -384,7 +387,7 @@ class FcadParser(object):
             ("or",  2, opAssoc.LEFT,  BoolOr),
         ])
 
-        identifier = Word(alphas + "_", alphanums + "_")
+        identifier = Word("$" + alphas + "_", alphanums + "_")
         plusorminus = Literal('+') | Literal('-')
         numberal = Word(nums)
         e = CaselessLiteral('E')
@@ -420,12 +423,7 @@ class FcadParser(object):
                        LPAR + Optional(arguments)("args") + RPAR)
         module_call_statement = (module_call + SEMI).setParseAction(self.module_call_action)
 
-        numerical_value = ( constant |
-                            calculation |
-                            identifier("name").setParseAction(self.lookup_id_action) |
-                            Group(Suppress("(") + calculation + Suppress(")")) )
-
-        primitive_argument_assignment_value = (numerical_value | boolExpr)
+        primitive_argument_assignment_value = (calculation | boolExpr)
 
         primitive_argument_assignment = (identifier("variable") + EQUAL + primitive_argument_assignment_value).setParseAction(self.primitive_argument_assignment_action)
         primitive_argument = (primitive_argument_assignment | expression("exp"))
@@ -446,9 +444,9 @@ class FcadParser(object):
         modifier_scope = ( (ZeroOrMore(modifier)("modifiers") + identifier("name") + LPAR + Optional(primitive_argument_list)("args") + RPAR + FollowedBy("{")).setParseAction(self.modifier_scope_prepare_action) +
                             LBRACE + ZeroOrMore(statement) + RBRACE ).setParseAction(self.modifier_scope_action)
 
-        vector = (LBRACK + numerical_value + COLON + numerical_value + RBRACK).setParseAction(self.vector_action)
+        vector = (LBRACK + calculation + COLON + calculation + RBRACK).setParseAction(self.vector_action)
 
-        for_loop_scope = ( ZeroOrMore(modifier)("modifiers") + ( FOR + LPAR + identifier("index") + EQUAL + vector("range") + RPAR + FollowedBy("{") ).setParseAction(self.begin_for_loop_scope) +
+        for_loop_scope = ( ZeroOrMore(modifier)("modifiers") + ( FOR + LPAR + identifier("index") + EQUAL + vector("loop_range") + RPAR + FollowedBy("{") ).setParseAction(self.begin_for_loop_scope) +
                          LBRACE + ZeroOrMore(statement)("body") + RBRACE ).setParseAction(self.for_loop_scope_action)
 
         statement << ( for_loop_scope | primitive_call_statement | module_call_statement | Suppress(assign_statement) | modifier_scope )
@@ -462,31 +460,35 @@ class FcadParser(object):
 
     def vector_action(self, text, loc, tokens):
         if DEBUG > 0:
-            print("VECTOR:", tokens)
+            print("vector_action:", tokens)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         return Vector(tokens[0], tokens[1])
 
     def begin_for_loop_scope(self, text, loc, tokens):
-        print("begin_for_loop_scope", repr(tokens))
-
-        #self.symtab.insert_global_var(tokens.index, tokens.range)
-
         if DEBUG > 0:
-            print("VECTOR:", tokens)
+            print("begin_for_loop_scope:", tokens)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
 
-        return [tokens.index, tokens.range]
+        return [tokens.index, tokens.loop_range]
 
     def for_loop_scope_action(self, text, loc, tokens):
-        print("for_loop_scope_action", tokens)
 
-        #result = []
-        #for i in range(loop_range.start, loop_range.end):
-        #   pass
+        if DEBUG > 0:
+            print("for_loop_scope_action:", tokens)
+            if DEBUG == 2: self.symtab.display()
+            if DEBUG > 2: return
 
-        #return result
+        result = []
+        variable = tokens[0]
+        loop_range = tokens[1]
+        for i in range(loop_range.x, loop_range.y):
+            assignment = Assignment(variable, i)
+            assignment_scope = Scope("assign", [assignment], tokens.body, [])
+            result.append(assignment_scope)
+
+        return result
 
     def lookup_id_action(self, text="", loc=-1, var=None):
         """Code executed after recognising an identificator in expression"""
