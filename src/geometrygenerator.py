@@ -4,6 +4,7 @@ from PyQt4.QtGui import QPolygonF
 from shapely import affinity
 from shapely.geometry import Point, LinearRing, MultiLineString, MultiPoint, Polygon
 from shapely.geometry.base import BaseMultipartGeometry
+import sys
 import cadfileparser
 
 class ArgumentParser(object):
@@ -100,6 +101,8 @@ class ArgumentParser(object):
 class GeometryGenerator(object):
     def __init__(self, screen_width, screen_height):
         self.default_resolution = 64
+
+        self.assignment_stack = []
 
         self.current_position = [0.0, 0.0]
         self.screen_width = screen_width
@@ -277,6 +280,13 @@ class GeometryGenerator(object):
             result = result.intersection(elem)
         return result
 
+    def apply_temporary_assignments(self, scope):
+        for assignment in scope.arguments:
+            self.assignment_stack.append(assignment)
+
+    def resolve_temporary_assignments(self, scope):
+        self.assignment_stack.pop()
+
     def being_scope(self, scope):
         if scope.name == "union":
             pass
@@ -284,6 +294,8 @@ class GeometryGenerator(object):
             pass
         elif scope.name == "intersection":
             pass
+        elif scope.name == "assign":
+            self.apply_temporary_assignments(scope)
         else:
             raise Exception("Unknown Scope '" + scope.name + "'")
 
@@ -294,6 +306,9 @@ class GeometryGenerator(object):
             result = self.create_difference(primitives)
         elif scope.name == "intersection":
             result = self.create_intersection(primitives)
+        elif scope.name == "assign":
+            self.resolve_temporary_assignments()
+            result = self.extract_primitives(scope.children)
         else:
             raise Exception("Unknown Scope '" + scope.name + "'")
 
@@ -317,9 +332,13 @@ class GeometryGenerator(object):
             if isinstance(expression, cadfileparser.Statement) and expression.type == cadfileparser.StatementType.Primitive:
                 result.append(self.create_primitive(expression))
             elif isinstance(expression, cadfileparser.Scope):
-                result.append(self.create_scope(expression))
+                scope_result = self.create_scope(expression)
+                if isinstance(scope_result, list):
+                    result.extend(scope_result)
+                else:
+                    result.append(scope_result)
             else:
-                raise Exception("unknown expression " + repr(expression))
+                raise Exception("unknown expression type " + repr(type(expression)) + " ( " + repr(expression) + " )")
 
         return result
 
