@@ -4,8 +4,8 @@ import sys
 from PyQt4 import QtCore, QtGui
 from documentwatcher import DocumentWatcher
 from geometrywidget import GeometryWidget
-from src.cadfileparser import FcadParser
-from src.printcapturecontext import PrintCaptureContext
+from cadfileparser import FcadParser
+from printcapturecontext import PrintCaptureContext
 from svggenerator import SvgGenerator
 from geometrygenerator import GeometryGenerator
 

@@ -1,11 +1,10 @@
 from __future__ import print_function
-import copy
 import pprint
 import math
 import re
 from pyparsing import lineno, col, line, Suppress, Keyword, oneOf, Literal, infixNotation, opAssoc, Word, alphas, \
-    alphanums, nums, CaselessLiteral, Combine, Optional, Forward, ZeroOrMore, delimitedList, FollowedBy, Group, \
-    OneOrMore, restOfLine, cStyleComment, ParseException, traceParseAction
+    alphanums, nums, CaselessLiteral, Combine, Optional, Forward, ZeroOrMore, delimitedList, FollowedBy, \
+    OneOrMore, restOfLine, cStyleComment, ParseException
 
 
 # defines debug level
@@ -13,7 +12,6 @@ from pyparsing import lineno, col, line, Suppress, Keyword, oneOf, Literal, infi
 # 1 - print parsing results
 # 2 - print parsing results and symbol table
 # 3 - print parsing results only, without executing parse actions (grammar-only testing)
-import sys
 
 DEBUG = 2
 
