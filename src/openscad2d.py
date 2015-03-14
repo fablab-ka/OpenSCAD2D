@@ -47,7 +47,6 @@ class OpenSCAD2D(object):
             else:
                 raise Exception(error)
 
-
         if self.widget:
             self.widget.setData(data, capture_context, error)
 
@@ -60,6 +59,9 @@ class OpenSCAD2D(object):
         app.setWindowIcon(QtGui.QIcon('../logo.png'))
         data, capture_context, error = self.update()
         self.widget = GeometryWidget(self.filename, data, capture_context, error, self.screen_width, self.screen_height, self.loadFile)
+
+        if self.watcher:
+            self.watcher.stop_monitor()
 
         sys.exit(app.exec_())
 
