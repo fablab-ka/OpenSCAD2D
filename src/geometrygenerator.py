@@ -1,114 +1,26 @@
 from __future__ import print_function
+
 from PyQt4.QtCore import QPointF
 from PyQt4.QtGui import QPolygonF
 from shapely import affinity
-from shapely.geometry import Point, LinearRing, MultiLineString, MultiPoint, Polygon
+from shapely.geometry import Point, MultiPoint, Polygon
 from shapely.geometry.base import BaseMultipartGeometry
-import sys
+
 import cadfileparser
+from argumentparser import ArgumentParser
+from unresolvedtermresolver import UnresolvedTermResolver
 
-class ArgumentParser(object):
-    def __init__(self, primitive_name, argument_definitions):
-        self.primitive_name = primitive_name
-        self.argument_definitions = argument_definitions
-
-        self.required_arguments = filter(lambda a: not a["optional"], self.argument_definitions)
-
-        self.arguments_by_identifier = {}
-
-        for a in self.argument_definitions:
-            for name in a["names"]:
-                self.arguments_by_identifier[name] = a
-
-        self.docu_link = "https://github.com/fablab-ka/OpenSCAD2D"
-
-    def create_docu_clue(self, target):
-        target = '#' + target
-        return "see documentation (" + self.docu_link + target + ")"
-
-    def extract_assignments(self, arguments):
-        assignments = []
-
-        for a in arguments:
-            if isinstance(a, cadfileparser.Assignment):
-                assignments.append(a)
-            else:
-                raise Exception("You can either use Assignments or Arguments e.g. circle(r=1); or circle(1); not both")
-
-        return assignments
-
-    def resolve_value(self, value, types=None):
-        result = None
-
-        if isinstance(value, float) or isinstance(value, long) or isinstance(value, bool):
-            result = value
-        elif isinstance(value, cadfileparser.BoolOperand):
-            result = value.value
-        elif isinstance(value, cadfileparser.Constant):
-            if types is not None and not (value.type in types):
-                raise Exception("Invalid type (" + value.type + ") of Constant (" + value.value + ") expected " + ", ".join(types))
-
-            if isinstance(value.value, float) or isinstance(value, long) or isinstance(value, bool):
-                result = value.value
-            elif isinstance(value.value, str):
-                result = float(value.value)
-            else:
-                raise Exception("Unknown type (" + value.type + ") of Constant (" + value.value + ")")
-        elif isinstance(value, cadfileparser.Variable):
-            #todo lookup current value of: value[0].identifier
-            result = -1
-        elif isinstance(value, list):
-            if len(value) == 0:
-                result = None
-                print("WARNING: non-value found")
-            elif len(value) > 1:
-                raise Exception("multiple values found")
-            elif isinstance(value[0], cadfileparser.Variable):
-                #todo lookup current value of: value[0].identifier
-                result = -1
-            else:
-                raise Exception("Unknown Value type (" + str(type(value[0])) + ")")
-        else:
-            raise Exception("Unknown Value type (" + str(type(value)) + ")")
-
-        return result
-
-    def parse(self, arguments):
-        result = [definition["default"] for definition in self.argument_definitions]
-
-        if len(arguments) > len(self.argument_definitions) or len(arguments) <= 0:
-            raise Exception("wrong number of arguments for circle." + self.create_docu_clue("Circle"))
-
-        if all(map(lambda a: isinstance(a, cadfileparser.Assignment), arguments)):
-            assignments = self.extract_assignments(arguments)
-
-            for a in assignments:
-                if a.identifier not in self.arguments_by_identifier.keys():
-                    raise Exception("Unknown argument '" + a.identifier + "' for " + self.primitive_name + "." + self.create_docu_clue("Circle"))
-
-                definition = self.arguments_by_identifier[a.identifier]
-
-                result[definition["index"]] = self.resolve_value(a.value)
-        else:
-            if any(map(lambda a: isinstance(a, cadfileparser.Assignment), arguments)):
-                raise Exception("You can either use Assignments or Arguments e.g. circle(r=1); or circle(1); not both")
-
-            for i in range(len(arguments)):
-                result[i] = self.resolve_value(arguments[i], self.argument_definitions[i]["types"])
-
-        return result
 
 class GeometryGenerator(object):
     def __init__(self, screen_width, screen_height):
         self.default_resolution = 64
 
-        self.assignment_stack = []
-
         self.current_position = [0.0, 0.0]
         self.screen_width = screen_width
         self.screen_height = screen_height
+        self.termResolver = UnresolvedTermResolver()
 
-        self.circle_argument_parser = ArgumentParser("circle", [{
+        self.circle_argument_parser = ArgumentParser("circle", self.termResolver, [{
             "names": ["r", "radius"],
             "types": ["INT", "FLOAT"],
             "default": 1,
@@ -122,7 +34,7 @@ class GeometryGenerator(object):
             "index": 1
         }])
 
-        self.rect_argument_parser = ArgumentParser("rect", [{
+        self.rect_argument_parser = ArgumentParser("rect", self.termResolver, [{
             "names": ["w", "width"],
             "types": ["INT", "FLOAT"],
             "default": 1,
@@ -136,7 +48,7 @@ class GeometryGenerator(object):
             "index": 1
         }])
 
-        self.translate_argument_parser = ArgumentParser("translate", [{
+        self.translate_argument_parser = ArgumentParser("translate", self.termResolver, [{
             "names": ["x"],
             "types": ["INT", "FLOAT"],
             "default": 0,
@@ -150,7 +62,7 @@ class GeometryGenerator(object):
             "index": 1
         }])
 
-        self.rotate_argument_parser = ArgumentParser("rotate", [{
+        self.rotate_argument_parser = ArgumentParser("rotate", self.termResolver, [{
             "names": ["a", "angle"],
             "types": ["INT", "FLOAT"],
             "default": 0,
@@ -176,7 +88,7 @@ class GeometryGenerator(object):
             "index": 3
         }])
 
-        self.scale_argument_parser = ArgumentParser("scale", [{
+        self.scale_argument_parser = ArgumentParser("scale", self.termResolver, [{
             "names": ["x"],
             "types": ["INT", "FLOAT"],
             "default": 0,
@@ -190,7 +102,7 @@ class GeometryGenerator(object):
             "index": 1
         }])
 
-        self.simplify_argument_parser = ArgumentParser("scale", [{
+        self.simplify_argument_parser = ArgumentParser("scale", self.termResolver, [{
             "names": ["t", "tolerance"],
             "types": ["INT", "FLOAT"],
             "default": 0.5,
@@ -215,7 +127,6 @@ class GeometryGenerator(object):
         return MultiPoint([(x, y), (x, y + h), (x + w, y + h), (x + w, y)]).convex_hull
 
     def create_primitive(self, primitive):
-        result = None
 
         if primitive.name == "circle":
             result = self.create_circle(primitive.arguments)
@@ -282,10 +193,10 @@ class GeometryGenerator(object):
 
     def apply_temporary_assignments(self, scope):
         for assignment in scope.arguments:
-            self.assignment_stack.append(assignment)
+            self.termResolver.assignment_stack.append(assignment)
 
     def resolve_temporary_assignments(self):
-        self.assignment_stack.pop()
+        self.termResolver.assignment_stack.pop()
 
     def being_scope(self, scope):
         if scope.name == "union":
@@ -300,6 +211,8 @@ class GeometryGenerator(object):
             raise Exception("Unknown Scope '" + scope.name + "'")
 
     def end_scope(self, scope, primitives):
+        result = primitives
+
         if scope.name == "union":
             result = self.create_union(primitives)
         elif scope.name == "difference":
@@ -308,7 +221,6 @@ class GeometryGenerator(object):
             result = self.create_intersection(primitives)
         elif scope.name == "assign":
             self.resolve_temporary_assignments()
-            result = self.extract_primitives(scope.children)
         else:
             raise Exception("Unknown Scope '" + scope.name + "'")
 
