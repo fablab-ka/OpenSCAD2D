@@ -262,6 +262,9 @@ class Variable(object):
     def __init__(self, identifier):
         self.identifier = identifier
 
+    def __repr__(self):
+        return "{VARIABLE: " + str(self.identifier) + "}"
+
 class Assignment(object):
     def __init__(self, identifier, value):
         self.identifier = identifier
@@ -311,6 +314,13 @@ class BoolNot(object):
     __repr__ = __str__
     __nonzero__ = __bool__
 
+class UnresolvedCalculation(object):
+    def __init__(self, stack):
+        self.stack = stack
+
+    def __repr__(self):
+        return "{UNRESOLVED_CALCULATION: " + repr(self.stack) + "}"
+
 ##########################################################################################
 ##########################################################################################
 
@@ -336,10 +346,18 @@ class FcadParser(object):
 
     def evaluateStack(self, s):
         op = s.pop()
+        if isinstance(op, UnresolvedCalculation):
+            return op
+        if isinstance(op, long) or isinstance(op, float) or isinstance(op, int):
+            return op
         if op in "+-*/^":
             op2 = self.evaluateStack( s )
             op1 = self.evaluateStack( s )
-            return self.operators[op]( op1, op2 )
+            if isinstance(op1, Variable) or isinstance(op2, Variable) or \
+               isinstance(op1, UnresolvedCalculation) or isinstance(op2, UnresolvedCalculation):
+                return UnresolvedCalculation([op1, op2, op])
+            else:
+                return self.operators[op]( op1, op2 )
         elif op == "PI":
             return math.pi
         elif op == "E":
@@ -348,7 +366,7 @@ class FcadParser(object):
             if self.symtab.contains(op, KINDS.GLOBAL_VAR, None):
                 return self.symtab.get_value(op, KINDS.GLOBAL_VAR, None)
             else:
-                return 0
+                return Variable(op)
         elif re.search('^[-+]?[0-9]+$',op):
             return long( op )
         else:
