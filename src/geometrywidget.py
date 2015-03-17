@@ -1,13 +1,14 @@
 from __future__ import print_function
-import os, svgwrite
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QMessageBox
+import os
+import svgwrite
+from PySide import QtCore, QtGui
+from PySide.QtCore import Qt
+from PySide.QtGui import QMessageBox
 
 
 class GeometryWidget(QtGui.QMainWindow, object):
     def __init__(self, filename, data, log_data, error, screen_width, screen_height, load_file_callback):
-        super(QtGui.QMainWindow, self).__init__(None)
+        super(GeometryWidget, self).__init__()
 
         self.filename = filename
         self.data = data
@@ -15,14 +16,11 @@ class GeometryWidget(QtGui.QMainWindow, object):
         self.screen_height = screen_height
         self.load_file_callback = load_file_callback
         self.isLoading = False
-
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Background, QtCore.Qt.white)
         self.setPalette(palette)
-
         self.logList = log_data
         self.current_error = error
-
         self.initUI()
 
     def openFile(self):
