@@ -1,7 +1,7 @@
 # pylint: disable-msg=E0611
 from __future__ import print_function
 import sys
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 from documentwatcher import DocumentWatcher
 from geometrywidget import GeometryWidget
 from cadfileparser import FcadParser

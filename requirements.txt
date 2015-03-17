@@ -1,5 +1,5 @@
 pyparsing==2.0.3
 pywatch==0.4
-Shapely
+shapely
 svgwrite
-# also: PyQt4
+pyside

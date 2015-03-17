@@ -1,7 +1,7 @@
 from __future__ import print_function
 
-from PyQt4.QtCore import QPointF
-from PyQt4.QtGui import QPolygonF
+from PySide.QtCore import QPointF
+from PySide.QtGui import QPolygonF
 from shapely import affinity
 from shapely.geometry import Point, MultiPoint, Polygon
 from shapely.geometry.base import BaseMultipartGeometry
