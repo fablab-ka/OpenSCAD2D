@@ -7,8 +7,7 @@ before_script:
   - "sh -e /etc/init.d/xvfb start"
 install:
   - sudo apt-get install libqt4-dev
-  - pip install PySide --no-index --find-links https://parkin.github.io/python-wheelhouse/;
-    # Travis CI servers use virtualenvs, so we need to finish the install by the following
+  - pip install PySide --no-index --find-links https://8167b5c3a2af93a0a9fb-13c6eee0d707a05fa610c311eec04c66.ssl.cf2.rackcdn.com/;
   - python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
   - "pip install -r requirements.txt --index-url"
   - pip install coveralls
