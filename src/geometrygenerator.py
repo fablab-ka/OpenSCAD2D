@@ -205,6 +205,8 @@ class GeometryGenerator(object):
             pass
         elif scope.name == "intersection":
             pass
+        elif scope.name == "combine":
+            pass
         elif scope.name == "assign":
             self.apply_temporary_assignments(scope)
         else:

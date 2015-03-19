@@ -5,17 +5,19 @@ plate_height = 300;
 number_of_rows = 3;
 number_of_cols = 3;
 hole_radius = 10;
-hole_spacing = 20;
+hole_spacing = 30;
 
 margin = 5;
 
 difference() {
 	rect(plate_width, plate_height);
 
-	for (y = [0:number_of_rows]) {
-		for (x = [0:number_of_cols]) {
-			translate(x * hole_spacing + hole_radius + margin, y * hole_spacing + hole_radius + margin)
-			circle(r=hole_radius, $fn=fn);
-		}
+    union() {
+	    for (y = [0:number_of_rows]) {
+		    for (x = [0:number_of_cols]) {
+		    	translate(x * hole_spacing + margin, y * hole_spacing + margin)
+		    	circle(r=hole_radius, $fn=fn);
+		    }
+	    }
 	}
 }

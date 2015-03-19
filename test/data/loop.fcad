@@ -1,0 +1,15 @@
+difference() {
+    union() {
+        for (x = [0:10]) {
+            translate(x * 25, 0)
+            circle(10);
+        }
+    }
+
+    union() {
+        for (x = [0:10]) {
+            translate(x * 25 + 5, 0)
+            circle(10);
+        }
+    }
+}
