@@ -73,7 +73,7 @@ def log_exceptions(log_if=True):
                             print('    %s = %s\n' % (k, v))
                 except Exception as e:
                     print (e)
-                
+
                 print('\n')
 
                 raise
