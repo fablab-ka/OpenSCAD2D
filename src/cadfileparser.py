@@ -6,7 +6,7 @@ import re
 from pyparsing import lineno, col, line, Suppress, Keyword, oneOf, Literal, infixNotation, opAssoc, Word, alphas, \
     alphanums, nums, CaselessLiteral, Combine, Optional, Forward, ZeroOrMore, delimitedList, FollowedBy, \
     OneOrMore, restOfLine, cStyleComment, ParseException
-from src.log_exceptions import log_exceptions
+from log_exceptions import log_exceptions
 
 if sys.version > '3':
     long = int
