@@ -6,6 +6,7 @@ import re
 from pyparsing import lineno, col, line, Suppress, Keyword, oneOf, Literal, infixNotation, opAssoc, Word, alphas, \
     alphanums, nums, CaselessLiteral, Combine, Optional, Forward, ZeroOrMore, delimitedList, FollowedBy, \
     OneOrMore, restOfLine, cStyleComment, ParseException
+from log_exceptions import log_exceptions
 
 if sys.version > '3':
     long = int
@@ -568,6 +569,7 @@ class FcadParser(object):
             print("primitive_argument_assignment_action", assignment)
         return Assignment(assignment[0], assignment[1])
 
+    @log_exceptions(log_if=DEBUG)
     def primitive_call_action(self, text, loc, call):
         if DEBUG > 0:
             print("primitive_call_action",loc, call)
