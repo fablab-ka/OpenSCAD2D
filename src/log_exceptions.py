@@ -10,7 +10,7 @@ LOG_FRAME_TPL = '  File "%s", line %i, in %s\n    %s\n'
 # replaced with newline literals.
 def log_to_str(v):
     if isinstance(v, str):
-        return ["'", v.replace('\n', '\\n'), "'"].join('')
+        return "'" + v.replace('\n', '\\n') + "'"
     else:
         try:
             return str(v).replace('\n', '\\n')
