@@ -9,7 +9,7 @@ LOG_FRAME_TPL = '  File "%s", line %i, in %s\n    %s\n'
 # default value-to-string conversion function. makes sure any newlines are
 # replaced with newline literals.
 def log_to_str(v):
-    if isinstance(v, types.StringType):
+    if isinstance(v, str):
         return ["'", v.replace('\n', '\\n'), "'"].join('')
     else:
         try:
