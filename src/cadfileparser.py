@@ -586,7 +586,7 @@ class FcadParser(object):
     def primitive_call_action(self, text, loc, call):
         if DEBUG > 0:
             print("primitive_call_action",loc, call)
-        modifiers = filter(lambda c: isinstance(c, Statement) and c.type == StatementType.Modifier, call)
+        modifiers = list(filter(lambda c: isinstance(c, Statement) and c.type == StatementType.Modifier, call))
         name = call[len(modifiers)]
         arguments = call[len(modifiers)+1:]
         return Statement(StatementType.Primitive, name, arguments, modifiers)
