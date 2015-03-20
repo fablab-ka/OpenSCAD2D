@@ -1,14 +1,14 @@
 sum = 5 + 10;
 difference = 10 - 5;
-prio1 = 5 + (10 - 5);
-prio2 = 10 - (5 + 4);
-prio3 = 5 + (5 - sum) + 5;
+//prio1 = 5 + (10 - 5);
+//prio2 = 10 - (5 + 4);
+//prio3 = 5 + (5 - sum) + 5;
 
 multiplication = 2 * 2;
 multiplication2 = 2 * difference;
-mult_prio = prio1 * (5 - 2);
+//mult_prio = prio1 * (5 - 2);
 
 division = 1/2;
 division2 = sum / 3;
-division3 = (sum / 3) / 2;
-division4 = 4 / (1 / 2) / 5;
+//division3 = (sum / 3) / 2;
+//division4 = 4 / (1 / 2) / 5;

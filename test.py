@@ -1,5 +1,3 @@
-import unittest
-
 from test.test_fcadParser import *
 
 if __name__ == '__main__':
