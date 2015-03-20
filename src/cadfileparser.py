@@ -6,7 +6,7 @@ import re
 from pyparsing import lineno, col, line, Suppress, Keyword, oneOf, Literal, infixNotation, opAssoc, Word, alphas, \
     alphanums, nums, CaselessLiteral, Combine, Optional, Forward, ZeroOrMore, delimitedList, FollowedBy, \
     OneOrMore, restOfLine, cStyleComment, ParseException
-from log_exceptions import log_exceptions
+from src.log_exceptions import log_exceptions
 
 if sys.version > '3':
     long = int
@@ -475,9 +475,11 @@ class FcadParser(object):
 
         self.program = (ZeroOrMore(use) + body).setParseAction(self.program_end_action)
 
+    @log_exceptions(log_if=DEBUG)
     def debug_action(self, text, loc, stuff):
         return stuff
 
+    @log_exceptions(log_if=DEBUG)
     def vector_action(self, text, loc, tokens):
         if DEBUG > 0:
             print("vector_action:", tokens)
@@ -485,6 +487,7 @@ class FcadParser(object):
             if DEBUG > 2: return
         return Vector(tokens[0], tokens[1])
 
+    @log_exceptions(log_if=DEBUG)
     def begin_for_loop_scope(self, text, loc, tokens):
         if DEBUG > 0:
             print("begin_for_loop_scope:", tokens)
@@ -493,6 +496,7 @@ class FcadParser(object):
 
         return [tokens.index, tokens.loop_range]
 
+    @log_exceptions(log_if=DEBUG)
     def for_loop_scope_action(self, text, loc, tokens):
 
         if DEBUG > 0:
@@ -510,6 +514,7 @@ class FcadParser(object):
 
         return result
 
+    @log_exceptions(log_if=DEBUG)
     def lookup_id_action(self, text="", loc=-1, var=None):
         """Code executed after recognising an identificator in expression"""
         
@@ -523,6 +528,7 @@ class FcadParser(object):
             raise SemanticException("'%s' undefined" % varname)
         return [Variable(varname)]
 
+    @log_exceptions(log_if=DEBUG)
     def constant_action(self, text, loc, const):
         """Code executed after recognising a constant"""
         exshared.setpos(loc, text)
@@ -532,6 +538,7 @@ class FcadParser(object):
             if DEBUG > 2: return
         return Constant(const)
 
+    @log_exceptions(log_if=DEBUG)
     def assign_action(self, text, loc, assign):
         if DEBUG > 0:
             print("ASSIGN:", assign)
@@ -541,29 +548,35 @@ class FcadParser(object):
         self.symtab.insert_global_var(assign.variable, assign.expression)
         return None
 
+    @log_exceptions(log_if=DEBUG)
     def use_action(self, text, loc, use):
         if DEBUG > 0:
             print("use_action")
         return "use_token"
 
+    @log_exceptions(log_if=DEBUG)
     def argument_action(self, text, loc, argument):
         if DEBUG > 0:
             print("argument_action",loc, argument)
 
+    @log_exceptions(log_if=DEBUG)
     def module_call_prepare_action(self, text, loc, argument):
         if DEBUG > 0:
             print("module_call_prepare_action")
 
+    @log_exceptions(log_if=DEBUG)
     def module_call_action(self, text, loc, call_name):
         if DEBUG > 0:
             print("module_call_action")
         return call_name[0]
 
+    @log_exceptions(log_if=DEBUG)
     def primitive_call_prepare_action(self, text, loc, call_name):
         if DEBUG > 0:
             print("primitive_call_prepare_action",loc, call_name)
         return call_name[0]
 
+    @log_exceptions(log_if=DEBUG)
     def primitive_argument_assignment_action(self, text, loc, assignment):
         if DEBUG > 0:
             print("primitive_argument_assignment_action", assignment)
@@ -578,23 +591,27 @@ class FcadParser(object):
         arguments = call[len(modifiers)+1:]
         return Statement(StatementType.Primitive, name, arguments, modifiers)
 
+    @log_exceptions(log_if=DEBUG)
     def primitive_modifier_prepare_action(self, text, loc, modifier):
         if DEBUG > 0:
             print("primitive_modifier_prepare_action",loc, modifier)
         return modifier[0]
 
+    @log_exceptions(log_if=DEBUG)
     def primitive_modifier_action(self, text, loc, modifier):
         if DEBUG > 0:
             print("primitive_modifier_action",loc, modifier)
         arguments = modifier[1:]
         return Statement(StatementType.Modifier, modifier[0], arguments)
 
+    @log_exceptions(log_if=DEBUG)
     def modifier_scope_prepare_action(self, text, loc, scope):
         if DEBUG > 0:
             print("modifier_scope_prepare_action",loc, scope)
 
         return Scope(scope.name, scope.args, [], scope.modifiers)
 
+    @log_exceptions(log_if=DEBUG)
     def modifier_scope_action(self, text, loc, scope):
         if DEBUG > 0:
             print("modifier_scope_action",loc, scope)
@@ -603,6 +620,7 @@ class FcadParser(object):
         result.children = scope[1:]
         return result
 
+    @log_exceptions(log_if=DEBUG)
     def program_end_action(self):
         if DEBUG > 0:
             print("program_end_action")
