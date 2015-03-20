@@ -1,4 +1,5 @@
 from __future__ import print_function
+import sys
 import pprint
 import math
 import re
@@ -6,6 +7,8 @@ from pyparsing import lineno, col, line, Suppress, Keyword, oneOf, Literal, infi
     alphanums, nums, CaselessLiteral, Combine, Optional, Forward, ZeroOrMore, delimitedList, FollowedBy, \
     OneOrMore, restOfLine, cStyleComment, ParseException
 
+if sys.version > '3':
+    long = int
 
 # defines debug level
 # 0 - no debug
