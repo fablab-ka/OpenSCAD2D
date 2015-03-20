@@ -1,3 +1,4 @@
+from __future__ import print_function
 import types
 import inspect
 import sys
@@ -16,11 +17,12 @@ def log_to_str(v):
         except:
             return '<ERROR: CANNOT PRINT>'
 
+
 # log_exceptions decorator
-def log_exceptions(log_path = 'exceptions.log',
-                   frame_template = LOG_FRAME_TPL,
-                   value_to_string = log_to_str,
-                   log_if = True):
+def log_exceptions(log_path='exceptions.log',
+                   frame_template=LOG_FRAME_TPL,
+                   value_to_string=log_to_str,
+                   log_if=True):
     """
     A decorator that catches any exceptions thrown by the decorated function and
     logs them along with a traceback that includes every local variable of every
@@ -77,7 +79,7 @@ def log_exceptions(log_path = 'exceptions.log',
 
             try:
                 return func(*args, **kwds)
-            except Exception, e:
+            except Exception as e:
                 if not log_if:
                     raise
 
@@ -112,5 +114,7 @@ def log_exceptions(log_path = 'exceptions.log',
                     log_file.close()
 
                 raise
+
         return wrapper
+
     return decorator
