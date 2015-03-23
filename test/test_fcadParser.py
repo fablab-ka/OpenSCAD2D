@@ -1,6 +1,7 @@
 from __future__ import print_function
 import os
-from src.cadfileparser import FcadParser, StatementType, Statement, Assignment, Constant
+
+from src.cadfileparser import FcadParser, StatementType, Assignment
 
 import unittest
 
@@ -15,7 +16,8 @@ class TestFcadParser(unittest.TestCase):
 
         result, error = parser.parse()
 
-        if error: self.fail(error)
+        if error:
+            self.fail(error)
 
         self.assertTrue(result[0].type == StatementType.Primitive, "unexpected token type '" + result[0].type + "'")
         self.assertTrue(result[0].name == 'circle', "unexpected token name '" + result[0].name + "'")

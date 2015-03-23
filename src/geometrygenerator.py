@@ -6,9 +6,9 @@ from shapely import affinity
 from shapely.geometry import Point, MultiPoint, Polygon
 from shapely.geometry.base import BaseMultipartGeometry
 
-import cadfileparser
-from argumentparser import ArgumentParser
-from unresolvedtermresolver import UnresolvedTermResolver
+from src import cadfileparser
+from src.argumentparser import ArgumentParser
+from src.unresolvedtermresolver import UnresolvedTermResolver
 
 
 class GeometryGenerator(object):

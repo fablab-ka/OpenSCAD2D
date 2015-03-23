@@ -1,4 +1,4 @@
-import cadfileparser
+from src import cadfileparser
 
 __author__ = 'sven'
 
