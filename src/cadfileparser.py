@@ -1,12 +1,11 @@
 from __future__ import print_function
-import sys
 import pprint
 import math
 import re
 from pyparsing import lineno, col, line, Suppress, Keyword, oneOf, Literal, infixNotation, opAssoc, Word, alphas, \
     alphanums, nums, CaselessLiteral, Combine, Optional, Forward, ZeroOrMore, delimitedList, FollowedBy, \
     OneOrMore, restOfLine, cStyleComment, ParseException
-from log_exceptions import *
+from .log_exceptions import *
 
 if sys.version > '3':
     long = int

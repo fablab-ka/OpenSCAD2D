@@ -1,6 +1,7 @@
 from __future__ import print_function
 import os
-from src.cadfileparser import FcadParser, StatementType, Statement, Assignment, Constant
+
+from src.cadfileparser import FcadParser, StatementType, Assignment
 
 import unittest
 
