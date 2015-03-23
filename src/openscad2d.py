@@ -2,13 +2,13 @@
 from __future__ import print_function
 import sys
 from PySide import QtCore, QtGui
-from documentwatcher import DocumentWatcher
-from geometrywidget import GeometryWidget
-from cadfileparser import FcadParser
-from printcapturecontext import PrintCaptureContext
-from svggenerator import SvgGenerator
-from geometrygenerator import GeometryGenerator
 
+from src.documentwatcher import DocumentWatcher
+from src.geometrywidget import GeometryWidget
+from src.cadfileparser import FcadParser
+from src.printcapturecontext import PrintCaptureContext
+from src.svggenerator import SvgGenerator
+from src.geometrygenerator import GeometryGenerator
 
 
 class OpenSCAD2D(object):
